@@ -8,9 +8,7 @@ import hpylib as hp
 import numpy as np
 from astropy.io import fits
 import math
-import sys
-sys.path.append("../lib")
-import normalize
+from . import normalize
 
 class LSF_DATA:
     """
@@ -18,7 +16,7 @@ class LSF_DATA:
     Configuration an lamp taken from a file_arc
     file_flat : correcting file
     """
-    def __init__(self, filename_arc: str, slice=0, detID=1, normal=True, filename_flat: str=None):
+    def __init__(self, filename_arc: str, file_listLines: str, slice=0, detID=1, normal=True, filename_flat: str=None):
         """
         Constructor
 
@@ -58,7 +56,7 @@ class LSF_DATA:
         except ValueError:
             self.lamp = 'linspace256'
 
-        self._listLines = self.load_line_list(self.lamp)
+        self._listLines = self.load_line_list(self.lamp, file_listLines)
         # Open table of wavelengths
         self._table_wave = hp.WAVECAL_TABLE.from_FITS("../exposures/WAVECAL_TABLE_20MAS_"+self.config+".fits", self.detID)
         # Open slitlet table
@@ -100,26 +98,28 @@ class LSF_DATA:
         self.pixel2dlambda = abs(np.nanmean(np.diff(self._array_wave_c)))
 
 
-    def load_line_list(self, lamp):
+    def load_line_list(self, lamp, filename):
         """
         Get a list of wavelength from a TXT or FITS file
 
         Parameters
         ------------
-        lamp    : str
-                a lamp ('Ar', 'Ne', 'Xe', 'Kr', 'linspace256')
+        lamp        : str
+                    a lamp ('Ar', 'Ne', 'Xe', 'Kr', 'linspace256')
+        filename    : str
+                    FITS or TXT file
 
         Returns
         -------------
         listLines   : array-like[int]
                     all number of lines of the lamp
         """
-        if lamp == "linspace256":
-            hdul_lines = fits.open("../exposures/line_catalog_linspace256.fits")
+        if ".fits" in filename:
+            hdul_lines = fits.open(filename)
             listLines = hdul_lines[self.config].data["wavelength"]
             hdul_lines.close()
-        else:
-            listLines = np.genfromtxt(f"../text/{lamp}.txt", usecols=1, skip_header=3)
+        elif ".txt" in filename:
+            listLines = np.genfromtxt(filename, usecols=1, skip_header=3)
         return listLines
 
         
@@ -278,7 +278,7 @@ class LSF_DATA:
 
         """
         data = self.get_data_line(nb_line)
-        ax.scatter(data['map_wave'], data['intensity'], marker='+', color='red', label=f'Real data line {nb_line}')
+        ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
 
     def __del__(self):
         """

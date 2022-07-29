@@ -4,14 +4,12 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from lsf_data import LSF_DATA
+from .lsf_data import LSF_DATA
 import numpy as np
 from numpyencoder import NumpyEncoder
 import json
 import importlib
-import sys
-sys.path.append("../lib")
-from error import *
+from .error import *
 
 def str_to_class(class_name):
     # load the module, will raise ImportError if module cannot be loaded

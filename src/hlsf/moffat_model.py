@@ -4,8 +4,8 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from fitted_moffat import fitted_moffat
-from lsf_model import LSF_MODEL
+from .fitted_moffat import fitted_moffat
+from .lsf_model import LSF_MODEL
 import numpy as np
 from lmfit.models import LinearModel
 

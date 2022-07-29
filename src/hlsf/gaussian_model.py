@@ -6,10 +6,8 @@ Created 12th July 2022
 
 from lmfit.models import LinearModel
 import numpy as np
-from lsf_model import LSF_MODEL
-import sys
-sys.path.append("../scripts")
-from fitted_gauss import fitted_gauss
+from .lsf_model import LSF_MODEL
+from .fitted_gauss import fitted_gauss
 
 class GAUSSIAN_MODEL(LSF_MODEL):
     """
