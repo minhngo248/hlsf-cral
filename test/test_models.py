@@ -5,12 +5,12 @@ Test file for models
 """
 
 import sys
+import choose_line
 import hlsf
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
-sys.path.append("..")
-import choose_line
+
 
 ## Constants
 lamps = ["Ar", "Kr", "Ne", "Xe"]
@@ -117,7 +117,54 @@ def test_plot_parameters(model, lamp, config):
     plt.suptitle(f"{len(mod._dic_params)} parameters of {name.replace('_model', ' function').capitalize()}", fontweight='bold')
     plt.show()
 
+def test_combine_lamps(model, config, slice):
+    """
+    Combination of 2 lamps, and import model in JSON file
 
+    Parameters
+    -------------
+    model       : class
+    config        : str
+    slice      : str    
+    """
+    for i in range(len(lamps)):
+        for j in range(i+1, len(lamps)):
+            lsf_data = [hlsf.LSF_DATA(f'../exposures/ARC-{lamps[i]}_CLEAR_20MAS_{config}_PRM.fits', f"../text/{lamps[i]}.txt", slice=slice), 
+                hlsf.LSF_DATA(f'../exposures/ARC-{lamps[j]}_CLEAR_20MAS_{config}_PRM.fits', f"../text/{lamps[j]}.txt", slice=slice)]
+            mod = model(lsf_data)
+            mod.write_json(f'../file/{str.lower(model.__name__)}_{config}_{lamps[i]}-{lamps[j]}.json')
+
+def test_plot_9_recs(config, detID):
+    """
+    Plot 9 zones ou 9 rectangles
+
+    Parameters
+    ------------
+    detID   : int
+            1-8
+    """
+    slices = [0, 19, 37]
+    obj = np.empty(3, dtype=hlsf.LSF_DATA)
+    for i, sli in enumerate(slices):
+        obj[i] = hlsf.LSF_DATA(filename_arc=f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", file_listLines="../exposures/line_catalog_linspace256.fits", 
+                                slice=sli, detID=detID)
+    max_line = choose_line.choose_line_max(obj[0].pose, obj[0].config, obj[0].detID)
+    min_line = choose_line.choose_line_min(obj[0].pose, obj[0].config, obj[0].detID)
+    lines = [min_line, 128, max_line]
+
+    ## Plotting
+    fig, axes = plt.subplots(3,3,figsize=(7,6)) 
+    plt.xlabel('wavelength')
+    plt.ylabel('intensity')
+    # plot 3 upper rectangles
+    for i in range(len(lines)):
+        for j in range(len(slices)):
+            obj[j].plot_line(lines[i], axes[i, j])
+            axes[i, j].set_title(f" slice: {slices[j]} line: {lines[i]}")    
+    plt.legend()
+    plt.suptitle(f"LSF Variation 3 zones {obj[0].pose}, configuration {obj[0].config} detID {obj[0].detID}", fontsize=12, fontweight='bold')
+    #plt.savefig(f"../images/3_zones_fitted_{obj[0].config}_detID_{obj[0].detID}")
+    plt.show() 
 
 def main() -> int:
     models_arg = ['G', 'M', 'GH']
@@ -154,6 +201,10 @@ def main() -> int:
         test_rms_error("../exposures/ARC-linspace256_CLEAR_20MAS_H_PRM.fits", "../exposures/line_catalog_linspace256.fits", model, slice) 
     elif num == 4:
         test_plot_parameters(model, lamp, config)
+    elif num == 5:
+        test_combine_lamps(model, config, slice)
+    elif num == 6:
+        test_plot_9_recs(config, detID)
     return 0
 
 main()
