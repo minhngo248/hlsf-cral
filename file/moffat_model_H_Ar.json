@@ -1,0 +1,28 @@
+{
+    "name": "MOFFAT_MODEL",
+    "params_linear": {
+        "amplitude": [
+            2.354772026318258e-06,
+            0.9642278317620394
+        ],
+        "center": [
+            2.4007179866636624e-07,
+            -0.004282789109341001
+        ],
+        "sigma": [
+            -0.015736826650807126,
+            464.4403018742284
+        ],
+        "beta": [
+            -3.2703354849359547,
+            75471.51192354602
+        ]
+    },
+    "filename_arc": [
+        "../exposures/ARC-Ar_CLEAR_20MAS_H_PRM.fits"
+    ],
+    "slice": 0,
+    "detID": 1,
+    "normal": true,
+    "filename_flat": null
+}
