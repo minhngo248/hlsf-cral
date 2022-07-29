@@ -1,0 +1,27 @@
+{
+    "name": "GAUSSIAN_MODEL",
+    "params_linear": {
+        "Amplitude": [
+            -9.888429004895955e-06,
+            1.1865503642917858
+        ],
+        "Mean": [
+            -1.4775354015467877e-06,
+            0.025672536679004453
+        ],
+        "Sigma": [
+            -4.218014584417135e-06,
+            0.47659218858498764
+        ]
+    },
+    "filename_arc": [
+        "../exposures/ARC-Xe_CLEAR_20MAS_Hhigh_PRM.fits"
+    ],
+    "file_listLines": [
+        "../text/Xe.txt"
+    ],
+    "slice": 0,
+    "detID": 1,
+    "normal": true,
+    "filename_flat": null
+}

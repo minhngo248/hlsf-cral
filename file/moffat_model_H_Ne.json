@@ -1,0 +1,28 @@
+{
+    "name": "MOFFAT_MODEL",
+    "dic_params": {
+        "amplitude": [
+            0.9995918177824872
+        ],
+        "center": [
+            0.008988905378073904
+        ],
+        "sigma": [
+            172.99006793739136
+        ],
+        "beta": [
+            15147.443807393242
+        ]
+    },
+    "line": 335,
+    "filename_arc": [
+        "../exposures/ARC-Ne_CLEAR_20MAS_H_PRM.fits"
+    ],
+    "file_listLines": [
+        "../text/Ne.txt"
+    ],
+    "slice": 0,
+    "detID": 1,
+    "normal": true,
+    "filename_flat": null
+}

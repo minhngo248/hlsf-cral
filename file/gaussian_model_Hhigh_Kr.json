@@ -1,0 +1,27 @@
+{
+    "name": "GAUSSIAN_MODEL",
+    "params_linear": {
+        "Amplitude": [
+            -1.2686606283717246e-05,
+            1.2324852557530357
+        ],
+        "Mean": [
+            -2.31058499402912e-06,
+            0.03653491329106492
+        ],
+        "Sigma": [
+            -4.884605478974182e-06,
+            0.4873780102318978
+        ]
+    },
+    "filename_arc": [
+        "../exposures/ARC-Kr_CLEAR_20MAS_Hhigh_PRM.fits"
+    ],
+    "file_listLines": [
+        "../text/Kr.txt"
+    ],
+    "slice": 0,
+    "detID": 1,
+    "normal": true,
+    "filename_flat": null
+}

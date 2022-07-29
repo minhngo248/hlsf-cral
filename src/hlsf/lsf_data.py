@@ -24,6 +24,8 @@ class LSF_DATA:
         -----------
         filename_arc    : str
                         path of a file arc
+        file_listLines  : str
+                        path to listLines
         slice           : int
                         number of slice (0-37)
         detID           : int
@@ -34,6 +36,7 @@ class LSF_DATA:
                         path of file flat
         """
         self.filename_arc = filename_arc
+        self.file_listLines = file_listLines
         self.filename_flat = filename_flat
         # Open image
         hdul = fits.open(filename_arc)
@@ -265,7 +268,7 @@ class LSF_DATA:
         tup = last_key, lines[last_key]
         return tup    
     
-    def plot_line(self, nb_line, ax):
+    def plot_line(self, nb_line, ax, centre=True):
         """
         Plot a line of intensity in function of wavelength of 
         the rectangle chosen
@@ -278,7 +281,10 @@ class LSF_DATA:
 
         """
         data = self.get_data_line(nb_line)
-        ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
+        if centre:
+            ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', label=f'Real data line {nb_line}')
+        else:
+            ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
 
     def __del__(self):
         """
