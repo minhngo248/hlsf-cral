@@ -18,14 +18,16 @@
             49905.54533460986
         ]
     },
-    "filename_arc": [
-        "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits"
-    ],
-    "file_listLines": [
-        "../text/Kr.txt"
-    ],
-    "slice": 0,
-    "detID": 1,
-    "normal": true,
-    "filename_flat": "../exposures/FLAT-CONT2_CLEAR_20MAS_H_PRM.fits"
+    "lsf_data": [
+        {
+            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Kr.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": "../exposures/FLAT-CONT2_CLEAR_20MAS_H_PRM.fits"
+        }
+    ]
 }

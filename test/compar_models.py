@@ -4,7 +4,7 @@ Comparison between 3 models
 @author : minh.ngo
 """
 
-import hlsf
+from hlsf.models import *
 import matplotlib.pyplot as plt
 import numpy as np
 import argparse
@@ -19,10 +19,11 @@ def test_rms_models(config, slice):
     slice       : int
                 0-37
     """
-    lsf_data = hlsf.LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits", slice=slice)
-    mod = hlsf.MOFFAT_MODEL.from_json("../file/moffat_model_H_Ne.json")
-    mod1 = hlsf.GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Ar.json")
-    mod2 = hlsf.GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
+    lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
+                            f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
+    mod = MOFFAT_MODEL.from_json("../file/moffat_model_H_Ne.json")
+    mod1 = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Ar.json")
+    mod2 = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
 
     fig = plt.figure()
     ax = plt.axes()
@@ -47,11 +48,12 @@ def test_plot(config, nb_line, slice):
     slice       : int
                 0-37
     """
-    lsf_data = hlsf.LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits", slice=slice)
+    lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
+                            f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
     mod = np.empty(3, dtype=object)
-    mod[0] = hlsf.MOFFAT_MODEL.from_json("../file/moffat_model_H_Ne.json")
-    mod[1] = hlsf.GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Ar.json")
-    mod[2] = hlsf.GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
+    mod[0] = MOFFAT_MODEL.from_json("../file/moffat_model_H_Ne.json")
+    mod[1] = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Ar.json")
+    mod[2] = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
 
     list_string = [f'{mod[i].__class__.__name__} {mod[i].error_rms(lsf_data, nb_line)}\n' for i in range(len(mod))]
     string = ''

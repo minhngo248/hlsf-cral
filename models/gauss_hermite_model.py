@@ -4,7 +4,7 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from .fitted_gauss_hermite import fitted_gauss_hermite
+from ..lib.fitted_gauss_hermite import fitted_gauss_hermite
 from .lsf_model import LSF_MODEL
 import numpy as np
 from lmfit.models import LinearModel

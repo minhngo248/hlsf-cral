@@ -5,10 +5,11 @@ Created 12th July 2022
 """
 
 import hpylib as hp
+from matplotlib.pyplot import viridis
 import numpy as np
 from astropy.io import fits
 import math
-from . import normalize
+from ..lib import normalize
 
 class LSF_DATA:
     """
@@ -16,30 +17,37 @@ class LSF_DATA:
     Configuration an lamp taken from a file_arc
     file_flat : correcting file
     """
-    def __init__(self, filename_arc: str, file_listLines: str, slice=0, detID=1, normal=True, filename_flat: str=None):
+    def __init__(self, file_arc: str, file_listLines: str, file_wavecal: str, file_slitlet: str,
+                         slice=0, detID=1, normal=True, file_flat: str=None):
         """
         Constructor
 
         Parameters
         -----------
-        filename_arc    : str
+        file_arc        : str
                         path of a file arc
         file_listLines  : str
-                        path to listLines
+                        path to listLines (TXT or FITS file)
+        file_wavecal    : str
+                        path to a wavecal table
+        file_slitlet    : str
+                        path to slitlet table
         slice           : int
                         number of slice (0-37)
         detID           : int
                         number of detector (1-8)
         normal          : bool
                         normalized distribution of intensity
-        filename_flat   : str
+        file_flat       : str
                         path of file flat
         """
-        self.filename_arc = filename_arc
+        self.file_arc = file_arc
         self.file_listLines = file_listLines
-        self.filename_flat = filename_flat
+        self.file_wavecal = file_wavecal
+        self.file_slitlet = file_slitlet
+        self.file_flat = file_flat
         # Open image
-        hdul = fits.open(filename_arc)
+        hdul = fits.open(file_arc)
         shape_image = hdul[f'CHIP{detID}.DATA'].shape
         if shape_image == (4096, 4096):
             self.pose = 'sampled'
@@ -61,14 +69,14 @@ class LSF_DATA:
 
         self._listLines = self.load_line_list(self.lamp, file_listLines)
         # Open table of wavelengths
-        self._table_wave = hp.WAVECAL_TABLE.from_FITS("../exposures/WAVECAL_TABLE_20MAS_"+self.config+".fits", self.detID)
+        self._table_wave = hp.WAVECAL_TABLE.from_FITS(self.file_wavecal, self.detID)
         # Open slitlet table
-        obj = hp.SLITLET_TABLE.from_FITS("../exposures/SLITLET_TABLE_20MAS_"+self.config+".fits", self.detID)
+        obj = hp.SLITLET_TABLE.from_FITS(self.file_slitlet, self.detID)
         
         ## Step of calibration 
         # Image (intensity)
-        if filename_flat != None:
-            hdul_flat = fits.open(filename_flat)
+        if file_flat != None:
+            hdul_flat = fits.open(file_flat)
             self._image = hdul['CHIP'+str(self.detID)+'.DATA'].data/hdul_flat['CHIP'+str(self.detID)+'.DATA'].data
             hdul_flat.close() 
         else:
@@ -125,15 +133,29 @@ class LSF_DATA:
             listLines = np.genfromtxt(filename, usecols=1, skip_header=3)
         return listLines
 
-        
+    @classmethod
+    def from_dict(obj, dic: dict):
+        """
+        Constructor from a dictionary
+        """
+        file_arc = dic['file_arc']
+        file_listLines = dic['file_listLines']
+        file_wavecal = dic['file_wavecal']
+        file_slitlet = dic['file_slitlet']
+        slice = dic['slice']
+        detID = dic['detID']
+        normal = dic['normal']
+        file_flat = dic['file_flat']
+        return obj(file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, normal, file_flat)
+
     def get_data_line(self, nb_line):
         """
         Extract all necessary informations for modelising the LSF
 
         Parameters
         ----------
-        nb_line : int
-                number of line (0-254)
+        nb_line     : int
+                    number of line in the slice
 
         Returns
         --------------
@@ -211,6 +233,7 @@ class LSF_DATA:
         Ex : {5: 15000, 6:15100, 9:16000}
 
         Returns
+        ----------
         full_list : dict[indice, wavelength of line]
         """
         indices = range(self._lineUp, self._lineDown+1)
@@ -285,6 +308,30 @@ class LSF_DATA:
             ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', label=f'Real data line {nb_line}')
         else:
             ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
+
+    def scatter(self, nb_line, ax, centre = True, c: str = 'x_coor'):
+        """
+        Scatter with a colorbar
+        """
+        data = self.get_data_line(nb_line)
+        if centre:
+            sc = ax.scatter(data['map_wave']-data['waveline'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
+        else:
+            sc = ax.scatter(data['map_wave'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
+        return sc
+
+    def to_dict(self):
+        """
+        Parameters
+        ------------
+
+        Returns
+        -------------
+        dic : dict[file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, normal, file_flat]
+        """
+        dic = {'file_arc': self.file_arc, 'file_listLines': self.file_listLines, 'file_wavecal': self.file_wavecal,
+                'file_slitlet': self.file_slitlet, 'slice': self.slice, 'detID': self.detID, 'normal': self.normal, 'file_flat': self.file_flat}
+        return dic
 
     def __del__(self):
         """

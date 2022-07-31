@@ -9,11 +9,11 @@ import numpy as np
 from numpyencoder import NumpyEncoder
 import json
 import importlib
-from .error import *
+from ..lib.error import *
 
 def str_to_class(modu, class_name):
     # load the module, will raise ImportError if module cannot be loaded
-    m = importlib.import_module(f'{modu}.{str.lower(class_name)}')
+    m = importlib.import_module(modu)
     # get the class, will raise KeyError if class cannot be found
     c = m.__dict__[class_name]
     return c
@@ -82,16 +82,9 @@ class LSF_MODEL(object):
         """
         with open(filename, 'r') as f:
             data = json.load(f)
-        file_arc = data['filename_arc']
-        file_listLines = data['file_listLines']
-        slice = data['slice']
-        detID = data['detID']
-        normal = data['normal']
-        filename_flat = data['filename_flat']
-        lsf_data = np.empty(len(file_arc), dtype=LSF_DATA)
-        for i in range(len(file_arc)):
-            lsf_data[i] = LSF_DATA(file_arc[i], file_listLines[i], slice, detID, normal, filename_flat)
-        model = str_to_class('hlsf', data['name'])
+        dic_lsf_data = data['lsf_data']
+        lsf_data = [LSF_DATA.from_dict(lsf) for lsf in dic_lsf_data]
+        model = str_to_class('hlsf.models', data['name'])
         try:
             _params_linear = data['params_linear']
         except KeyError:
@@ -252,16 +245,13 @@ class LSF_MODEL(object):
                     ex : gaussian_model_H_Ar.json
         """ 
         classname = self.__class__.__name__
-        file_arc = [lsf.filename_arc for lsf in self.lsf_data]
-        file_listLines = [lsf.file_listLines for lsf in self.lsf_data]
+        dic_lsf_data = [lsf.to_dict() for lsf in self.lsf_data]
         if len(self._wavelines) > 1:
             # many lines in lsf_data
-            dic = {'name': classname, 'params_linear' : self._params_linear, 'filename_arc': file_arc, 'file_listLines': file_listLines, 'slice': self.lsf_data[0].slice, 
-                'detID': self.lsf_data[0].detID, 'normal': self.lsf_data[0].normal, 'filename_flat': self.lsf_data[0].filename_flat}
+            dic = {'name': classname, 'params_linear' : self._params_linear, 'lsf_data': dic_lsf_data}
         elif len(self._wavelines) == 1:
             # fit with only one line
-            dic = {'name': classname, 'dic_params' : self._dic_params, 'line': self._listLines[0][0], 'filename_arc': file_arc, 'file_listLines': file_listLines, 'slice': self.lsf_data[0].slice, 
-                'detID': self.lsf_data[0].detID, 'normal': self.lsf_data[0].normal, 'filename_flat': self.lsf_data[0].filename_flat}
+            dic = {'name': classname, 'dic_params' : self._dic_params, 'line': self._listLines[0][0], 'lsf_data': dic_lsf_data}
         json_object = json.dumps(dic, indent=4, cls=NumpyEncoder)
         with open(filename, "w") as outfile:
             outfile.write(json_object)        

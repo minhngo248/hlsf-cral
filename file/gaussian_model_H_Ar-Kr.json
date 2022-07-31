@@ -14,16 +14,26 @@
             1.015933304251366
         ]
     },
-    "filename_arc": [
-        "../exposures/ARC-Ar_CLEAR_20MAS_H_PRM.fits",
-        "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits"
-    ],
-    "file_listLines": [
-        "../text/Ar.txt",
-        "../text/Kr.txt"
-    ],
-    "slice": 0,
-    "detID": 1,
-    "normal": true,
-    "filename_flat": null
+    "lsf_data": [
+        {
+            "file_arc": "../exposures/ARC-Ar_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ar.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": null
+        },
+        {
+            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Kr.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": null
+        }
+    ]
 }

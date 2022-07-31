@@ -2,30 +2,32 @@
     "name": "MOFFAT_MODEL",
     "params_linear": {
         "amplitude": [
-            -2.7705624311805627e-07,
-            1.004765068546999
+            -3.988869921513975e-07,
+            1.0106191579612112
         ],
         "center": [
-            7.892538559133234e-08,
-            -0.0005280067485278795
+            2.456908585448102e-07,
+            -0.0031689574967999038
         ],
         "sigma": [
-            -0.003674166281106318,
-            260.69230612381125
+            -0.015263803598027953,
+            447.777801707837
         ],
         "beta": [
-            -0.8889190445491217,
-            35082.86143530561
+            -3.3543076174557447,
+            75032.63997073799
         ]
     },
-    "filename_arc": [
-        "../exposures/ARC-Xe_CLEAR_20MAS_H_PRM.fits"
-    ],
-    "file_listLines": [
-        "../text/Xe.txt"
-    ],
-    "slice": 0,
-    "detID": 1,
-    "normal": true,
-    "filename_flat": null
+    "lsf_data": [
+        {
+            "file_arc": "../exposures/ARC-Xe_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Xe.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": "../exposures/FLAT-CONT2_CLEAR_20MAS_H_PRM.fits"
+        }
+    ]
 }
