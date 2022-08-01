@@ -2,16 +2,16 @@
     "name": "GAUSSIAN_MODEL",
     "params_linear": {
         "Amplitude": [
-            -4.196435308227374e-06,
-            2.4444134410389693
+            2.367554936563272,
+            7.891613454225632e-06
         ],
         "Mean": [
-            -3.9517298898593544e-07,
-            0.0071553251253385864
+            -0.003169320261759084,
+            2.4571582440329806e-07
         ],
         "Sigma": [
-            -2.6201528149941525e-06,
-            0.975340534712832
+            0.9342626191146759,
+            3.5272936502467205e-06
         ]
     },
     "lsf_data": [
@@ -20,7 +20,7 @@
             "file_listLines": "../text/Xe.txt",
             "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
             "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
-            "slice": 16,
+            "slice": 0,
             "detID": 1,
             "normal": true,
             "file_flat": "../exposures/FLAT-CONT2_CLEAR_20MAS_H_PRM.fits"

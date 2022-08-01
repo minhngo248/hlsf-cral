@@ -7,6 +7,7 @@ Created 12th July 2022
 from .lsf_data import LSF_DATA
 import numpy as np
 from numpyencoder import NumpyEncoder
+from numpy.polynomial import polynomial as P
 import json
 import importlib
 from ..lib.error import *
@@ -85,23 +86,21 @@ class LSF_MODEL(object):
         dic_lsf_data = data['lsf_data']
         lsf_data = [LSF_DATA.from_dict(lsf) for lsf in dic_lsf_data]
         model = str_to_class('hlsf.models', data['name'])
+        _params_linear = data['params_linear']
         try:
-            _params_linear = data['params_linear']
+            line = data['line']
         except KeyError:
-            # only one line
-            line = [[data['line']]]    
-            if data['name'] == 'GAUSS_HERMITE_MODEL':
-                dic_params = data['dic_params']
-                obj = model(lsf_data, deg=len(dic_params)-1, listLines=line)
-                return obj
-            obj = model(lsf_data, listLines=line)
-            return obj
-        else:
             if data['name'] == 'GAUSS_HERMITE_MODEL':
                 obj = model(lsf_data, deg=len(_params_linear)-1, _params_linear=_params_linear)
                 return obj
             obj = model(lsf_data, _params_linear=_params_linear)
             return obj
+        else:
+            if data['name'] == 'GAUSS_HERMITE_MODEL':
+                obj = model(lsf_data, [[line]], deg=len(_params_linear)-1, _params_linear=_params_linear)
+                return obj
+            obj = model(lsf_data, [[line]], _params_linear=_params_linear)
+            return obj            
 
     def plot(self, w_0, waves, ax, centre=True):
         """
@@ -228,12 +227,11 @@ class LSF_MODEL(object):
         -----------
         ax      : matplotlib.pyplot.axes
         """
-        if len(self._wavelines) > 1:
-            for i, key in enumerate(self._dic_params.keys()):
-                ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
-                ax[i].plot(self._wavelines, self._params_linear[key][0]*self._wavelines+self._params_linear[key][1], color='red')
-                ax[i].set_ylabel(key)
-                ax[i].grid()
+        for i, key in enumerate(self._params_linear.keys()):
+            ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
+            ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._params_linear[key]), color='red')
+            ax[i].set_ylabel(key)
+            ax[i].grid()
 
     def write_json(self, filename):
         """
@@ -247,11 +245,9 @@ class LSF_MODEL(object):
         classname = self.__class__.__name__
         dic_lsf_data = [lsf.to_dict() for lsf in self.lsf_data]
         if len(self._wavelines) > 1:
-            # many lines in lsf_data
             dic = {'name': classname, 'params_linear' : self._params_linear, 'lsf_data': dic_lsf_data}
         elif len(self._wavelines) == 1:
-            # fit with only one line
-            dic = {'name': classname, 'dic_params' : self._dic_params, 'line': self._listLines[0][0], 'lsf_data': dic_lsf_data}
+            dic = {'name': classname, 'params_linear' : self._params_linear, 'line': self._listLines[0][0], 'lsf_data': dic_lsf_data}
         json_object = json.dumps(dic, indent=4, cls=NumpyEncoder)
         with open(filename, "w") as outfile:
             outfile.write(json_object)        

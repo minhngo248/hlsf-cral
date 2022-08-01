@@ -4,7 +4,7 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from lmfit.models import LinearModel
+from numpy.polynomial import polynomial as P
 import numpy as np
 from .lsf_model import LSF_MODEL
 from ..lib.fitted_gauss import fitted_gauss
@@ -25,8 +25,7 @@ class GAUSSIAN_MODEL(LSF_MODEL):
                 intensity = data['intensity']
                 params = fitted_gauss(map_wave - waveline, intensity)
                 for key in params.keys():
-                    self._dic_params[key].append(params[key])            
-        mod = LinearModel()
+                    self._dic_params[key].append(params[key])      
         # wavelines : save all wavelength of lines
         self._wavelines = []
         for i in range(len(self.lsf_data)):
@@ -36,13 +35,14 @@ class GAUSSIAN_MODEL(LSF_MODEL):
         self._wavelines = np.array(self._wavelines)
         if (_params_linear == None):
             # Calculate linear coeff for 3 parameters
-            if len(self._wavelines) > 1:
-                params_linear = {'Amplitude': None, 'Mean': None, 'Sigma': None}
-                for key, value in self._dic_params.items():
-                    pars = mod.guess(value, x=self._wavelines)
-                    out = mod.fit(value, pars, x=self._wavelines)
-                    params_linear[key] = [out.params['slope'].value, out.params['intercept'].value]
-                self._params_linear = params_linear
+            params_linear = {'Amplitude': None, 'Mean': None, 'Sigma': None}
+            for key in self._dic_params.keys():
+                if len(self._wavelines) > 1:
+                    coeff, stats = P.polyfit(self._wavelines, self._dic_params[key], deg=1, full=True)
+                elif len(self._wavelines) == 1:
+                    coeff, stats = P.polyfit(self._wavelines, self._dic_params[key], deg=0, full=True)
+                params_linear[key] = coeff
+            self._params_linear = params_linear
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -58,13 +58,8 @@ class GAUSSIAN_MODEL(LSF_MODEL):
         -----------
         eval_intensity  : array-like
         """
-        if len(self._wavelines) == 1:
-            A = self._dic_params["Amplitude"][0]
-            mu = self._dic_params["Mean"][0]
-            sigma = self._dic_params["Sigma"][0]
-        elif len(self._wavelines) > 1:
-            A = self._params_linear["Amplitude"][0] * waves + self._params_linear["Amplitude"][1]
-            mu = self._params_linear["Mean"][0] * waves + self._params_linear["Mean"][1]
-            sigma = self._params_linear["Sigma"][0] * waves + self._params_linear["Sigma"][1]
+        A = P.polyval(waves, self._params_linear['Amplitude'])
+        mu = P.polyval(waves, self._params_linear['Mean'])
+        sigma = P.polyval(waves, self._params_linear['Sigma'])
         eval_intensity = A * 1/(sigma*np.sqrt(2*np.pi)) * np.exp(-0.5*((waves-w_0-mu)/sigma)**2)
         return eval_intensity

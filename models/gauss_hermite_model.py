@@ -7,11 +7,11 @@ Created 12th July 2022
 from ..lib.fitted_gauss_hermite import fitted_gauss_hermite
 from .lsf_model import LSF_MODEL
 import numpy as np
-from lmfit.models import LinearModel
+from numpy.polynomial import polynomial as P
 from numpy.polynomial.hermite import hermval
 
 def intensity(x, params_linear: dict):
-    params = [val[0]*x+val[1] for val in params_linear.values()]
+    params = [P.polyval(x, val) for val in params_linear.values()]
     y = hermval(x, params)
     return y
 
@@ -65,21 +65,21 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
             concat_params = np.concatenate((concat_params, array_params), axis=1)
 
         self._dic_params = dict(zip(list_params, concat_params))
-        mod = LinearModel()
         self._wavelines = []
         for i in range(len(self.lsf_data)):
             for nb_line in self._listLines[i]:
                 waveline = self.lsf_data[i].get_data_line(nb_line)['waveline']
                 self._wavelines.append(waveline)
         self._wavelines = np.array(self._wavelines)
-        if (_params_linear == None):
-            if (len(self._wavelines)) > 1:           
-                params_linear = dict.fromkeys(list_params, None)
-                for key, value in self._dic_params.items():
-                    pars = mod.guess(value, x=self._wavelines)
-                    out = mod.fit(value, pars, x=self._wavelines)
-                    params_linear[key] = [out.params['slope'].value, out.params['intercept'].value]
-                self._params_linear = params_linear  
+        if (_params_linear == None):          
+            params_linear = dict.fromkeys(list_params, None)
+            for key in self._dic_params.keys():
+                if len(self._wavelines) > 1:
+                    coeff, stats = P.polyfit(self._wavelines, self._dic_params[key], deg=1, full=True)
+                elif len(self._wavelines) == 1:
+                    coeff, stats = P.polyfit(self._wavelines, self._dic_params[key], deg=0, full=True)
+                params_linear[key] = coeff
+            self._params_linear = params_linear  
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -95,11 +95,6 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
         -----------
         eval_intensity  : array-like
         """
-        if len(self._wavelines) == 1:
-            params = np.array(list(self._dic_params.values()))
-            params = np.ravel(params)
-            eval_intensity = hermval(waves-w_0, params)
-        elif len(self._wavelines) > 1:
-            eval_intensity = [intensity(x-w_0, self._params_linear) for x in waves]
+        eval_intensity = [intensity(x-w_0, self._params_linear) for x in waves]
         return eval_intensity
     

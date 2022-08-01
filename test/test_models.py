@@ -239,7 +239,7 @@ def main() -> int:
     print("Choose a test function")
     num = int(input('Enter a number (1-7): '))
     if num == 1:
-        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat, deg=args.deg)
+        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat)
     elif num == 2:
         test_evaluate_intensity(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     elif num == 3:
