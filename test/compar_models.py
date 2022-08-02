@@ -21,9 +21,9 @@ def test_rms_models(config, slice):
     """
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                             f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
-    mod = MOFFAT_MODEL.from_json("../file/moffat_model_H_Xe.json")
-    mod1 = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Xe.json")
-    mod2 = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Xe.json")
+    mod = MOFFAT_MODEL.from_json("../file/moffat_model_H_Kr.json")
+    mod1 = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Kr.json")
+    mod2 = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
 
     fig = plt.figure()
     ax = plt.axes()
