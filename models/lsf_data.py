@@ -5,7 +5,6 @@ Created 12th July 2022
 """
 
 import hpylib as hp
-from matplotlib.pyplot import viridis
 import numpy as np
 from astropy.io import fits
 import math
@@ -305,9 +304,9 @@ class LSF_DATA:
         """
         data = self.get_data_line(nb_line)
         if centre:
-            ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', label=f'Real data line {nb_line}')
+            ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+')
         else:
-            ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
+            ax.plot(data['map_wave'], data['intensity'], '+')
 
     def scatter(self, nb_line, ax, centre = True, c: str = 'x_coor'):
         """

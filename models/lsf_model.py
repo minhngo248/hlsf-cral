@@ -85,22 +85,18 @@ class LSF_MODEL(object):
             data = json.load(f)
         dic_lsf_data = data['lsf_data']
         lsf_data = [LSF_DATA.from_dict(lsf) for lsf in dic_lsf_data]
-        model = str_to_class('hlsf.models', data['name'])
+        obj = str_to_class('hlsf.models', data['name'])
         _params_linear = data['params_linear']
         try:
             line = data['line']
         except KeyError:
             if data['name'] == 'GAUSS_HERMITE_MODEL':
-                obj = model(lsf_data, deg=len(_params_linear)-1, _params_linear=_params_linear)
-                return obj
-            obj = model(lsf_data, _params_linear=_params_linear)
-            return obj
+                return obj(lsf_data, deg=len(_params_linear)-1, _params_linear=_params_linear)
+            return obj(lsf_data, _params_linear=_params_linear)
         else:
             if data['name'] == 'GAUSS_HERMITE_MODEL':
-                obj = model(lsf_data, [[line]], deg=len(_params_linear)-1, _params_linear=_params_linear)
-                return obj
-            obj = model(lsf_data, [[line]], _params_linear=_params_linear)
-            return obj            
+                return obj(lsf_data, [[line]], deg=len(_params_linear)-1, _params_linear=_params_linear)
+            return obj(lsf_data, [[line]], _params_linear=_params_linear)
 
     def plot(self, w_0, waves, ax, centre=True):
         """

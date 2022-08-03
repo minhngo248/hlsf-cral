@@ -4,13 +4,13 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
+from ..lib.error import *
 from .lsf_data import LSF_DATA
 import numpy as np
 from numpyencoder import NumpyEncoder
-from numpy.polynomial import polynomial as P
 import json
 import importlib
-from ..lib.error import *
+
 
 def str_to_class(modu, class_name):
     # load the module, will raise ImportError if module cannot be loaded
@@ -19,11 +19,11 @@ def str_to_class(modu, class_name):
     c = m.__dict__[class_name]
     return c
 
-class LSF_MODEL(object):
+class LSF_MODEL_2(object):
     """
     Model for evaluating LSF function
     """
-    def __init__(self, lsf_data, listLines, _params_linear) -> None:
+    def __init__(self, lsf_data, listLines, _popt) -> None:
         """
         Constructor
 
@@ -50,7 +50,7 @@ class LSF_MODEL(object):
                                                 1.0077788675153003
                                             ]}
         """        
-        self._params_linear = _params_linear     
+        self._popt = _popt     
         if listLines == None:
             if type(lsf_data) == LSF_DATA:
                 self.lsf_data = np.asarray([lsf_data])  
@@ -85,22 +85,20 @@ class LSF_MODEL(object):
             data = json.load(f)
         dic_lsf_data = data['lsf_data']
         lsf_data = [LSF_DATA.from_dict(lsf) for lsf in dic_lsf_data]
-        model = str_to_class('hlsf.models', data['name'])
-        _params_linear = data['params_linear']
+        obj = str_to_class('hlsf.models', data['name'])
+        _popt = data['popt']
         try:
             line = data['line']
         except KeyError:
-            if data['name'] == 'GAUSS_HERMITE_MODEL':
-                obj = model(lsf_data, deg=len(_params_linear)-1, _params_linear=_params_linear)
-                return obj
-            obj = model(lsf_data, _params_linear=_params_linear)
-            return obj
+            if data['name'] == "GAUSS_HERMITE_MODEL_2":
+                deg = int(len(_popt)/2-1)
+                return obj(lsf_data, deg=deg, _popt=_popt)
+            return obj(lsf_data, _popt=_popt)
         else:
-            if data['name'] == 'GAUSS_HERMITE_MODEL':
-                obj = model(lsf_data, [[line]], deg=len(_params_linear)-1, _params_linear=_params_linear)
-                return obj
-            obj = model(lsf_data, [[line]], _params_linear=_params_linear)
-            return obj            
+            if data['name'] == "GAUSS_HERMITE_MODEL_2":
+                deg = int(len(_popt)/2-1)
+                return obj(lsf_data, deg=deg, listLines=[[line]], _popt=_popt)
+            return obj(lsf_data, [[line]], _popt=_popt)
 
     def plot(self, w_0, waves, ax, centre=True):
         """
@@ -218,21 +216,6 @@ class LSF_MODEL(object):
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
-    def plot_parameters(self, ax):
-        """
-        Plot all parameters of each models
-        and a fitted-line
-
-        Parameters
-        -----------
-        ax      : matplotlib.pyplot.axes
-        """
-        for i, key in enumerate(self._params_linear.keys()):
-            ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
-            ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._params_linear[key]), color='red')
-            ax[i].set_ylabel(key)
-            ax[i].grid()
-
     def write_json(self, filename):
         """
         Serialize into a file JSON
@@ -245,9 +228,9 @@ class LSF_MODEL(object):
         classname = self.__class__.__name__
         dic_lsf_data = [lsf.to_dict() for lsf in self.lsf_data]
         if len(self._wavelines) > 1:
-            dic = {'name': classname, 'params_linear' : self._params_linear, 'lsf_data': dic_lsf_data}
+            dic = {'name': classname, 'popt' : self._popt, 'lsf_data': dic_lsf_data}
         elif len(self._wavelines) == 1:
-            dic = {'name': classname, 'params_linear' : self._params_linear, 'line': self._listLines[0][0], 'lsf_data': dic_lsf_data}
+            dic = {'name': classname, 'popt' : self._popt, 'line': self._listLines[0][0], 'lsf_data': dic_lsf_data}
         json_object = json.dumps(dic, indent=4, cls=NumpyEncoder)
         with open(filename, "w") as outfile:
             outfile.write(json_object)        

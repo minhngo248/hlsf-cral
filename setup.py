@@ -15,5 +15,6 @@ setup(name='hlsf',
     packages=['hlsf.models', 'hlsf.lib'],
     package_dir={'hlsf.models': './models',
                 'hlsf.lib': './lib'},
-    install_requires=['lmfit', 'numpyencoder', 'hpylib', 'astropy', 'numpy']
+    install_requires=['lmfit', 'numpyencoder', 'hpylib', 
+                        'astropy', 'numpy', 'scipy']
     )
