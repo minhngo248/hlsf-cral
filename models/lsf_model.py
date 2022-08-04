@@ -70,6 +70,12 @@ class LSF_MODEL(object):
             else:
                 self.lsf_data = lsf_data
                 self._listLines = listLines  
+        # Verification similar config, detector, ...
+        config_verif = self.lsf_data[0].config
+        detID_verif = self.lsf_data[0].detID
+        for i in range(1, len(self.lsf_data)):
+            if (self.lsf_data[i].config != config_verif) | (self.lsf_data[i].detID != detID_verif):
+                raise NameError("Incompatible model because of difference of configurations of detectors")
 
     @classmethod
     def from_json(obj, filename):
@@ -118,6 +124,24 @@ class LSF_MODEL(object):
         else:
             ax.plot(wave_linspace+w_0, eval_intensity)
 
+    def plot_delta(self, w_0, delta_w, ax, centre=True):
+        """
+        Parameters
+        -----------
+        w_0     : float
+                wavelength of line
+        delta_w : positive float
+        ax      : matplotlib.pyplot.axes
+        centre  : bool
+                center in 0 of wavelength : True or False
+        """
+        wave_linspace = np.linspace(-delta_w, delta_w, int(300*delta_w))
+        eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
+        if centre:
+            ax.plot(wave_linspace, eval_intensity)
+        else:
+            ax.plot(wave_linspace+w_0, eval_intensity)
+
     def error_rms(self, lsf_data: LSF_DATA, listLines):
         """
         Calculate RMS error of all lines in LSF_DATA
@@ -149,7 +173,7 @@ class LSF_MODEL(object):
             err = err[0]
         return err
 
-    def plot_error_rms(self, lsf_data: LSF_DATA, listLines, ax):
+    def plot_error_rms(self, lsf_data: LSF_DATA, ax, listLines=None):
         """
         Parameters
         ------------
@@ -158,11 +182,13 @@ class LSF_MODEL(object):
                     ex : 9, [9, 10, 56]
         ax          : matplotlib.pyplot.axes
         """
-        err = self.error_rms(lsf_data, listLines)
+        if listLines == None:
+            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         if type(listLines) == int:
             listLines = [listLines]
         else:
             listLines = np.asarray(listLines)
+        err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
@@ -197,7 +223,7 @@ class LSF_MODEL(object):
             err = err[0]
         return err
 
-    def plot_error_max(self, lsf_data: LSF_DATA, listLines, ax):
+    def plot_error_max(self, lsf_data: LSF_DATA, ax, listLines=None):
         """
         Parameters
         ------------
@@ -206,11 +232,13 @@ class LSF_MODEL(object):
                     ex : 9, [9, 10, 56]
         ax          : matplotlib.pyplot.axes
         """
-        err = self.error_max(lsf_data, listLines)
+        if listLines == None:
+            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         if type(listLines) == int:
             listLines = [listLines]
         else:
             listLines = np.asarray(listLines)
+        err = self.error_max(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
