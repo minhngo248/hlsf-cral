@@ -21,17 +21,17 @@ def test_rms_models(config, slice):
     """
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                             f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
-    mod = MOFFAT_MODEL.from_json("../file/moffat_model_H_Kr.json")
-    mod1 = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Kr.json")
-    mod2 = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Kr.json")
+    mod = MOFFAT_MODEL.from_json("../file/moffat_model_H_Ne.json")
+    mod1 = GAUSSIAN_MODEL.from_json("../file/gaussian_model_H_Ne.json")
+    mod2 = GAUSS_HERMITE_MODEL.from_json("../file/gauss_hermite_model_H_Ne.json")
 
     fig = plt.figure()
     ax = plt.axes()
     plt.xlabel("wavelength")
     plt.ylabel("rms error")
-    mod.plot_error_rms(lsf_data, np.arange(lsf_data._lineUp, lsf_data._lineDown+1), ax)
-    mod1.plot_error_rms(lsf_data, np.arange(lsf_data._lineUp, lsf_data._lineDown+1), ax)
-    mod2.plot_error_rms(lsf_data, np.arange(lsf_data._lineUp, lsf_data._lineDown+1), ax)
+    mod.plot_error_rms(lsf_data, ax)
+    mod1.plot_error_rms(lsf_data, ax)
+    mod2.plot_error_rms(lsf_data, ax)
     ax.legend(['Moffat', 'Gauss', f'GH deg {mod2.deg}'])
     plt.title(f"RMS error between 3 models from line {lsf_data._lineUp} to {lsf_data._lineDown}", fontweight='bold')
     plt.grid()
@@ -75,22 +75,52 @@ def test_plot(config, nb_line, slice):
     plt.title(f"RMS error {string}")
     plt.show()
 
+def test_2_gaussian_models(lamp, slice):
+    mods = [LSF_MODEL.from_json(f'../file/gaussian_model_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/gaussian_model_2_H_{lamp}.json')]
+    lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_H_PRM.fits", "../exposures/line_catalog_linspace256.fits",
+                            f"../exposures/WAVECAL_TABLE_20MAS_H.fits", f"../exposures/SLITLET_TABLE_20MAS_H.fits", slice=slice)
+    fig = plt.figure()
+    ax = plt.axes()
+    plt.xlabel("wavelength")
+    plt.ylabel("RMS error")
+    mods[0].plot_error_rms(lsf_data, ax)
+    mods[1].plot_error_rms(lsf_data, ax)
+    plt.legend(['Model 1', 'Model 2'])
+    plt.grid()
+    plt.show()
+
+def plot_parameters_gauss_mods(lamp):
+    mods = [LSF_MODEL.from_json(f'../file/gaussian_model_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/gaussian_model_2_H_{lamp}.json')]
+    fig, axes = plt.subplots(3, 1)
+    plt.xlabel("wavelength")
+    mods[0].plot_parameters(axes)
+    for i, ax in enumerate(axes):
+        ax.plot(mods[1]._wavelines, mods[1]._coeff[2*i]+mods[1]._coeff[2*i+1]*mods[1]._wavelines, '+', color='green', label='Gauss Model 2')
+    plt.legend()
+    plt.show()    
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Create models")
     parser.add_argument("-c", "--config", type=str, help="Ex : H, HK, Hhigh", default='H')
     parser.add_argument("-s", "--slice", type=int, choices=range(38), default=0)
     parser.add_argument("--nb_line", type=int, default=100)
+    parser.add_argument("-l", "--lamp", type=str, default='Ar')
     args = parser.parse_args()
+    lamp = args.lamp
     config = args.config
     slice = args.slice
     nb_line = args.nb_line
 
     print("Choose a test function")
-    num = int(input('Enter a number (1-2): '))
+    num = int(input('Enter a number (1-4): '))
     if num == 1:
         test_rms_models(config, slice)
     elif num == 2:
         test_plot(config, nb_line, slice)
+    elif num == 3:
+        test_2_gaussian_models(lamp, slice)
+    elif num == 4:
+        plot_parameters_gauss_mods(lamp)
     return 0
 
 main()

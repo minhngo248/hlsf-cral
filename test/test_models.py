@@ -124,7 +124,7 @@ def test_rms_error(file_arc_test, file_lines, file_wavecal, file_slitlet, model,
     plt.xlabel("wavelength")
     plt.ylabel("RMS error")
     for mod in mods:
-        mod.plot_error_rms(lsf_data, range(lsf_data._lineUp, lsf_data._lineDown+1), ax)
+        mod.plot_error_rms(lsf_data, ax)
     plt.legend(lamps)
     plt.title(f"Comparaison of {str.lower(model.__name__).replace('_',' ').capitalize()} of 4 lamps config {lsf_data.config}\nfrom line {lsf_data._lineUp} to line {lsf_data._lineDown}", fontweight='bold')
     plt.grid()
@@ -259,9 +259,9 @@ def main() -> int:
     print("Choose a test function")
     num = int(input('Enter a number (1-7): '))
     if num == 1:
-        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID)
+        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat=file_flat)
     elif num == 2:
-        test_evaluate_intensity(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
+        test_evaluate_delta(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     elif num == 3:
         test_rms_error(f"../exposures/ARC-{lamp}_CLEAR_20MAS_{config}_PRM.fits", file_listLines, file_wavecal, file_slitlet, model, slice) 
     elif num == 4:
@@ -272,8 +272,6 @@ def main() -> int:
         test_plot_9_recs(config, detID)
     elif num == 7:
         test_scatter_9_recs(config, detID)
-    elif num == 8:
-        test_evaluate_delta(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     return 0
 
 main()

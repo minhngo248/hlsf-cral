@@ -4,7 +4,7 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from .lsf_model_2 import LSF_MODEL_2
+from .lsf_model import LSF_MODEL
 from numpy.polynomial import polynomial as P
 import numpy as np
 from scipy.optimize import leastsq
@@ -18,7 +18,7 @@ def poly_moffat(x, *args):
     beta = P.polyval(x, [args[6], args[7]])
     return A * (((x-mu)/sigma)**2 + 1)**(-beta)
 
-class MOFFAT_MODEL_2(LSF_MODEL_2):
+class MOFFAT_MODEL_2(LSF_MODEL):
     """
     Moffat model
     """

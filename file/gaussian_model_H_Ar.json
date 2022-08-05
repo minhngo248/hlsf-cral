@@ -1,17 +1,17 @@
 {
     "name": "GAUSSIAN_MODEL",
-    "params_linear": {
+    "coeff": {
         "Amplitude": [
-            1.0000000000000022,
-            -1.4318486294230628e-19
+            0.9999996246638132,
+            2.3430305826513587e-11
         ],
         "Mean": [
-            -0.34953047922765357,
-            2.4242845289227332e-05
+            -0.006872135801998598,
+            4.067935983049717e-07
         ],
         "Sigma": [
-            1.3050283158861768,
-            -6.322075522599472e-06
+            1.0080529354089383,
+            -4.031703034914275e-07
         ]
     },
     "lsf_data": [
@@ -22,8 +22,8 @@
             "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
             "slice": 0,
             "detID": 1,
-            "normal": true,
-            "file_flat": null
+            "normal": "Normal",
+            "file_flat": "../exposures/FLAT-CONT2_CLEAR_20MAS_H_PRM.fits"
         }
     ]
 }

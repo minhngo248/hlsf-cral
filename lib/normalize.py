@@ -5,6 +5,7 @@ Created 12th July 2022
 """
 
 import numpy as np
+from .fitted_gauss import *
 
 def normalize(image_cut):
     """
@@ -26,11 +27,7 @@ def normalize(image_cut):
     return image_uni
 
 def gaussian_normalize(waves, flux):
-    max_flux = max(flux)
-    ind = np.argmin(abs(max_flux-flux))
-    mu = waves[ind]
-    ind_half = np.argmin(abs(max_flux/2 - flux))
-    half_wave = waves[ind_half]
-    sigma = abs(half_wave - mu)
-    normalized_flux =  1/(sigma*np.sqrt(2*np.pi)) * np.exp(-0.5*((waves-mu)/sigma)**2)
+    dic_params = fitted_gauss(waves, flux)
+    A = dic_params['Amplitude']
+    normalized_flux = flux / A
     return normalized_flux

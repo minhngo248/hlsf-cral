@@ -2,22 +2,22 @@
     "name": "GAUSSIAN_MODEL",
     "coeff": {
         "Amplitude": [
-            1.0000001435311012,
-            -9.064499866503226e-12
+            0.9999997125105223,
+            1.663209095133809e-11
         ],
         "Mean": [
-            0.00603903087861612,
-            -3.181435572072825e-07
+            -0.045608956566450254,
+            2.8133545359518346e-06
         ],
         "Sigma": [
-            1.0156887194980697,
-            -1.0739724407316535e-06
+            0.9768878468537808,
+            1.3447898564925893e-06
         ]
     },
     "lsf_data": [
         {
-            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
-            "file_listLines": "../text/Kr.txt",
+            "file_arc": "../exposures/ARC-Ne_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ne.txt",
             "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
             "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
             "slice": 0,

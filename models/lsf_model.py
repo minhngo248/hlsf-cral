@@ -179,12 +179,13 @@ class LSF_MODEL(object):
                     ex : 9, [9, 10, 56]
         ax          : matplotlib.pyplot.axes
         """
-        if listLines == None:
-            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
-        if type(listLines) == int:
-            listLines = [listLines]
+        if isinstance(listLines, (np.ndarray, range, list)):            
+            if type(listLines) == int:
+                listLines = [listLines]
+            else:
+                listLines = np.asarray(listLines)
         else:
-            listLines = np.asarray(listLines)
+            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
@@ -229,12 +230,13 @@ class LSF_MODEL(object):
                     ex : 9, [9, 10, 56]
         ax          : matplotlib.pyplot.axes
         """
-        if listLines == None:
-            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
-        if type(listLines) == int:
-            listLines = [listLines]
+        if isinstance(listLines, (np.ndarray, range, list)):            
+            if type(listLines) == int:
+                listLines = [listLines]
+            else:
+                listLines = np.asarray(listLines)
         else:
-            listLines = np.asarray(listLines)
+            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         err = self.error_max(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
