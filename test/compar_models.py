@@ -94,8 +94,7 @@ def plot_parameters_gauss_mods(lamp):
     fig, axes = plt.subplots(3, 1)
     plt.xlabel("wavelength")
     mods[0].plot_parameters(axes)
-    for i, ax in enumerate(axes):
-        ax.plot(mods[1]._wavelines, mods[1]._coeff[2*i]+mods[1]._coeff[2*i+1]*mods[1]._wavelines, '+', color='green', label='Gauss Model 2')
+    mods[1].plot_parameters(axes)
     plt.legend()
     plt.show()    
 
