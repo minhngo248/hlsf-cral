@@ -4,7 +4,7 @@ Created 12th July 2022
 @author : minh.ngo
 """
 
-from .lsf_model_2 import LSF_MODEL_2
+from .lsf_model import LSF_MODEL
 from numpy.polynomial import polynomial as P
 import numpy as np
 from numpy.polynomial.hermite import hermval
@@ -16,12 +16,12 @@ def poly_gauss_hermite(x, deg, *args):
     params = [P.polyval(x, [args[i], args[i+1]]) for i in range(0, 2*deg+1, 2)]
     return hermval(x, params, tensor=False)
 
-class GAUSS_HERMITE_MODEL_2(LSF_MODEL_2):
+class GAUSS_HERMITE_MODEL_2(LSF_MODEL):
     """
     Gauss Hermite model
     """
-    def __init__(self, lsf_data, deg, listLines=None, _popt=None) -> None:
-        super().__init__(lsf_data, listLines, _popt)
+    def __init__(self, lsf_data, deg, listLines=None, _coeff=None) -> None:
+        super().__init__(lsf_data, listLines, _coeff)
         self.deg = deg
         list_waves = []
         list_intensity = []
@@ -44,12 +44,12 @@ class GAUSS_HERMITE_MODEL_2(LSF_MODEL_2):
                 waveline = self.lsf_data[i].get_data_line(nb_line)['waveline']
                 self._wavelines.append(waveline)
         self._wavelines = np.array(self._wavelines)
-        if (_popt == None):
+        if (_coeff == None):
             # Calculate linear coeff for 3 parameters
             err_func = lambda params, x, y: poly_gauss_hermite(x, deg, *params) - y
             p = np.ones(2*(deg+1))
             popt, ier = leastsq(err_func, x0=p, args=(list_waves, list_intensity))
-            self._popt = popt
+            self._coeff = popt
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -65,5 +65,5 @@ class GAUSS_HERMITE_MODEL_2(LSF_MODEL_2):
         -----------
         eval_intensity  : array-like
         """
-        eval_intensity = poly_gauss_hermite(waves-w_0, self.deg, *self._popt)
+        eval_intensity = poly_gauss_hermite(waves-w_0, self.deg, *self._coeff)
         return eval_intensity

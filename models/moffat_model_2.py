@@ -22,8 +22,8 @@ class MOFFAT_MODEL_2(LSF_MODEL_2):
     """
     Moffat model
     """
-    def __init__(self, lsf_data, listLines=None, _popt=None) -> None:
-        super().__init__(lsf_data, listLines, _popt)
+    def __init__(self, lsf_data, listLines=None, _coeff=None) -> None:
+        super().__init__(lsf_data, listLines, _coeff)
         list_waves = []
         list_intensity = []
         for i in range(len(self.lsf_data)):
@@ -45,11 +45,11 @@ class MOFFAT_MODEL_2(LSF_MODEL_2):
                 waveline = self.lsf_data[i].get_data_line(nb_line)['waveline']
                 self._wavelines.append(waveline)
         self._wavelines = np.array(self._wavelines)
-        if (_popt == None):
+        if (_coeff == None):
             # Calculate linear coeff for 3 parameters
             err_func = lambda params, x, y: poly_moffat(x, *params) - y
-            popt, ier = leastsq(err_func, x0=[2,4,1,5,4,4,8,8], args=(list_waves, list_intensity))
-            self._popt = popt
+            popt, ier = leastsq(err_func, x0=[1,0,0,0,1,0,0,0], args=(list_waves, list_intensity))
+            self._coeff = popt
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -65,5 +65,5 @@ class MOFFAT_MODEL_2(LSF_MODEL_2):
         -----------
         eval_intensity  : array-like
         """
-        eval_intensity = poly_moffat(waves-w_0, *self._popt)
+        eval_intensity = poly_moffat(waves-w_0, *self._coeff)
         return eval_intensity

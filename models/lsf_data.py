@@ -17,7 +17,7 @@ class LSF_DATA:
     file_flat : correcting file
     """
     def __init__(self, file_arc: str, file_listLines: str, file_wavecal: str, file_slitlet: str,
-                         slice=0, detID=1, normal=True, file_flat: str=None):
+                         slice=0, detID=1, normal='Normal', file_flat: str=None):
         """
         Constructor
 
@@ -35,7 +35,7 @@ class LSF_DATA:
                         number of slice (0-37)
         detID           : int
                         number of detector (1-8)
-        normal          : bool
+        normal          : str
                         normalized distribution of intensity
         file_flat       : str
                         path of file flat
@@ -216,8 +216,10 @@ class LSF_DATA:
         map_wave = map_wave[mask]
         image_cut = image_cut[mask]
 
-        if self.normal:
+        if self.normal == 'Uniform':
             image_cut = normalize.normalize(image_cut)
+        elif self.normal == 'Normal':
+            image_cut = normalize.gaussian_normalize(map_wave-wavelength_line, image_cut)
         if self.pose == 'oversampled':
             x_cor = (x_cor-1)/3
             y_cor = (y_cor-1)/3
@@ -331,6 +333,15 @@ class LSF_DATA:
         dic = {'file_arc': self.file_arc, 'file_listLines': self.file_listLines, 'file_wavecal': self.file_wavecal,
                 'file_slitlet': self.file_slitlet, 'slice': self.slice, 'detID': self.detID, 'normal': self.normal, 'file_flat': self.file_flat}
         return dic
+
+    def __str__(self) -> str:
+        return str(self.to_dict())
+
+    def __eq__(self, obj: object) -> bool:
+        # Verification similar config, detector, ...
+        if (self.config != obj.config) | (self.detID != obj.detID) | (self.normal != obj.normal):
+            return False
+        return True  
 
     def __del__(self):
         """

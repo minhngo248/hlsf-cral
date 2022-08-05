@@ -68,8 +68,9 @@ def test_evaluate_intensity(file_json, nb_line, config, slice):
     mod = LSF_MODEL.from_json(file_json)
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                                 f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
-    w_0 = lsf_data.get_data_line(nb_line)['waveline']
-    waves = lsf_data.get_data_line(nb_line)['map_wave']
+    data = lsf_data.get_data_line(nb_line)
+    w_0 = data['waveline']
+    waves = data['map_wave']
 
     fig = plt.figure()
     ax = plt.axes()
@@ -81,6 +82,25 @@ def test_evaluate_intensity(file_json, nb_line, config, slice):
     plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
     plt.grid()
     plt.show()
+
+def test_evaluate_delta(file_json, nb_line, config, slice):
+    mod = LSF_MODEL.from_json(file_json)
+    lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
+                                f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
+    data = lsf_data.get_data_line(nb_line)
+    w_0 = data['waveline']
+    delta_w = 4*lsf_data.pixel2dlambda
+
+    fig = plt.figure()
+    ax = plt.axes()
+    plt.xlabel("wavelength")
+    plt.ylabel("intensity")
+    lsf_data.plot_line(nb_line, ax)
+    mod.plot_delta(w_0, delta_w, ax)
+    ax.legend([f'Real data line {nb_line}', 'Fitted line'])
+    plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
+    plt.grid()
+    plt.show()    
 
 def test_rms_error(file_arc_test, file_lines, file_wavecal, file_slitlet, model, slice):
     """
@@ -239,7 +259,7 @@ def main() -> int:
     print("Choose a test function")
     num = int(input('Enter a number (1-7): '))
     if num == 1:
-        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat)
+        test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID)
     elif num == 2:
         test_evaluate_intensity(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     elif num == 3:
@@ -252,6 +272,8 @@ def main() -> int:
         test_plot_9_recs(config, detID)
     elif num == 7:
         test_scatter_9_recs(config, detID)
+    elif num == 8:
+        test_evaluate_delta(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     return 0
 
 main()

@@ -16,7 +16,7 @@ def intensity(x, params_linear: dict):
     return y
 
 class GAUSS_HERMITE_MODEL(LSF_MODEL):
-    def __init__(self, lsf_data, deg, listLines=None, _params_linear=None) -> None:
+    def __init__(self, lsf_data, deg, listLines=None, _coeff=None) -> None:
         """
         Constructor
 
@@ -45,7 +45,7 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
                                     1.0077788675153003
                                 ]}
         """ 
-        super().__init__(lsf_data, listLines, _params_linear)
+        super().__init__(lsf_data, listLines, _coeff)
         self.deg = deg            
         list_params = [f'Par{i}' for i in range(deg+1)]    
         self._dic_params = dict.fromkeys(list_params, [])
@@ -71,7 +71,7 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
                 waveline = self.lsf_data[i].get_data_line(nb_line)['waveline']
                 self._wavelines.append(waveline)
         self._wavelines = np.array(self._wavelines)
-        if (_params_linear == None):          
+        if (_coeff == None):          
             params_linear = dict.fromkeys(list_params, None)
             for key in self._dic_params.keys():
                 if len(self._wavelines) > 1:
@@ -79,7 +79,7 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
                 elif len(self._wavelines) == 1:
                     coeff = P.polyfit(self._wavelines, self._dic_params[key], deg=0)
                 params_linear[key] = coeff
-            self._params_linear = params_linear  
+            self._coeff = params_linear  
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -95,7 +95,7 @@ class GAUSS_HERMITE_MODEL(LSF_MODEL):
         -----------
         eval_intensity  : array-like
         """
-        params = [P.polyval(waves, self._params_linear[key]) for key in self._params_linear.keys()]
+        params = [P.polyval(waves, self._coeff[key]) for key in self._coeff.keys()]
         #eval_intensity = [intensity(x-w_0, self._params_linear) for x in waves]
         eval_intensity = hermval(waves-w_0, params, tensor=False)
         return eval_intensity

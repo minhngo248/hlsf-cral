@@ -1,0 +1,31 @@
+{
+    "name": "GAUSSIAN_MODEL_2",
+    "params_popt": [
+        -0.06132346845295096,
+        3.903179540934666e-06,
+        1.1341712347801933,
+        2.2967712409375147e-06
+    ],
+    "lsf_data": [
+        {
+            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Kr.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": null
+        },
+        {
+            "file_arc": "../exposures/ARC-Ne_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ne.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": true,
+            "file_flat": null
+        }
+    ]
+}

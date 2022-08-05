@@ -13,8 +13,8 @@ class GAUSSIAN_MODEL(LSF_MODEL):
     """
     Gaussian model
     """
-    def __init__(self, lsf_data, listLines=None, _params_linear=None) -> None:
-        super().__init__(lsf_data, listLines, _params_linear)
+    def __init__(self, lsf_data, listLines=None, _coeff=None) -> None:
+        super().__init__(lsf_data, listLines, _coeff)
         # dic_params : save all parameters of each line
         self._dic_params = {'Amplitude': [], 'Mean': [], 'Sigma': []}
         for i in range(len(self.lsf_data)):
@@ -33,7 +33,7 @@ class GAUSSIAN_MODEL(LSF_MODEL):
                 waveline = self.lsf_data[i].get_data_line(nb_line)['waveline']
                 self._wavelines.append(waveline)
         self._wavelines = np.array(self._wavelines)
-        if (_params_linear == None):
+        if (_coeff == None):
             # Calculate linear coeff for 3 parameters
             params_linear = {'Amplitude': None, 'Mean': None, 'Sigma': None}
             for key in self._dic_params.keys():
@@ -42,7 +42,7 @@ class GAUSSIAN_MODEL(LSF_MODEL):
                 elif len(self._wavelines) == 1:
                     coeff = P.polyfit(self._wavelines, self._dic_params[key], deg=0)
                 params_linear[key] = coeff
-            self._params_linear = params_linear
+            self._coeff = params_linear
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -58,8 +58,8 @@ class GAUSSIAN_MODEL(LSF_MODEL):
         -----------
         eval_intensity  : array-like
         """
-        A = P.polyval(waves, self._params_linear['Amplitude'])
-        mu = P.polyval(waves, self._params_linear['Mean'])
-        sigma = P.polyval(waves, self._params_linear['Sigma'])
+        A = P.polyval(waves, self._coeff['Amplitude'])
+        mu = P.polyval(waves, self._coeff['Mean'])
+        sigma = P.polyval(waves, self._coeff['Sigma'])
         eval_intensity = A * 1/(sigma*np.sqrt(2*np.pi)) * np.exp(-0.5*((waves-w_0-mu)/sigma)**2)
         return eval_intensity
