@@ -93,12 +93,18 @@ class LSF_MODEL(object):
         try:
             line = data['line']
         except KeyError:
-            if data['name'] == 'GAUSS_HERMITE_MODEL':
-                return obj(lsf_data, deg=len(_coeff)-1, _coeff=_coeff)
+            if 'GAUSS_HERMITE_MODEL' in data['name']:
+                if '_2' in data['name']:
+                    return obj(lsf_data, deg=int(len(_coeff)/2)-1, _coeff=_coeff)
+                else:
+                    return obj(lsf_data, deg=len(_coeff)-1, _coeff=_coeff)
             return obj(lsf_data, _coeff=_coeff)
         else:
-            if data['name'] == 'GAUSS_HERMITE_MODEL':
-                return obj(lsf_data, [[line]], deg=len(_coeff)-1, _coeff=_coeff)
+            if 'GAUSS_HERMITE_MODEL' in data['name']:
+                if '_2' in data['name']:
+                    return obj(lsf_data, deg=int(len(_coeff)/2)-1, _coeff=_coeff)
+                else:
+                    return obj(lsf_data, deg=len(_coeff)-1, _coeff=_coeff)
             return obj(lsf_data, [[line]], _coeff=_coeff)
 
     def plot(self, w_0, waves, ax, centre=True):
@@ -241,7 +247,7 @@ class LSF_MODEL(object):
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
-    def plot_parameters(self, ax):
+    def plot_parameters(self, ax, shape=None):
         """
         Plot all parameters of each models
         and a fitted-line
@@ -250,16 +256,31 @@ class LSF_MODEL(object):
         -----------
         ax      : matplotlib.pyplot.axes
         """
-        if "_2" in self.__class__.__name__:
-            # Model 2
-            for i in range(len(ax)):
-                ax[i].plot(self._wavelines, self._coeff[2*i] + self._wavelines*self._coeff[2*i+1], '+', color='green', label='Model 2')
+        if isinstance(shape, tuple) == False:
+            if "_2" in self.__class__.__name__:
+                # Model 2
+                for i in range(len(ax)):
+                    ax[i].plot(self._wavelines, self._coeff[2*i] + self._wavelines*self._coeff[2*i+1], '+', color='green', label='Model 2')
+            else:
+                for i, key in enumerate(self._coeff.keys()):
+                    ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
+                    ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[key]), color='red')
+                    ax[i].set_ylabel(key)
+                    ax[i].grid()
         else:
-            for i, key in enumerate(self._coeff.keys()):
-                ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
-                ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[key]), color='red')
-                ax[i].set_ylabel(key)
-                ax[i].grid()
+            if "_2" in self.__class__.__name__:
+                # Model 2
+                for i in range(shape[0]):
+                    for j in range(shape[1]):
+                        ax[i, j].plot(self._wavelines, self._coeff[2*(4*i+j)] + self._wavelines*self._coeff[2*(4*i+j)+1], '+', color='green', label='Model 2')
+            else:
+                for i in range(shape[0]):
+                    for j in range(shape[1]):
+                        ax[i, j].scatter(self._wavelines, self._dic_params[f'Par{4*i+j}'], marker='o')
+                        ax[i, j].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[f'Par{4*i+j}']), color='red')
+                        ax[i, j].set_ylabel(f'Par{4*i+j}')
+                        ax[i, j].grid()
+
 
     def write_json(self, filename):
         """

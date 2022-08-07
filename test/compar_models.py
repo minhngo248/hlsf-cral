@@ -75,8 +75,8 @@ def test_plot(config, nb_line, slice):
     plt.title(f"RMS error {string}")
     plt.show()
 
-def test_2_gaussian_models(lamp, slice):
-    mods = [LSF_MODEL.from_json(f'../file/gaussian_model_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/gaussian_model_2_H_{lamp}.json')]
+def test_2_models_rms(model: str, lamp, slice):
+    mods = [LSF_MODEL.from_json(f'../file/{model}_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/{model}_2_H_{lamp}.json')]
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_H_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                             f"../exposures/WAVECAL_TABLE_20MAS_H.fits", f"../exposures/SLITLET_TABLE_20MAS_H.fits", slice=slice)
     fig = plt.figure()
@@ -86,20 +86,30 @@ def test_2_gaussian_models(lamp, slice):
     mods[0].plot_error_rms(lsf_data, ax)
     mods[1].plot_error_rms(lsf_data, ax)
     plt.legend(['Model 1', 'Model 2'])
+    plt.title(f"RMS error {model.replace('_',' ').capitalize()}")
     plt.grid()
     plt.show()
 
-def plot_parameters_gauss_mods(lamp):
-    mods = [LSF_MODEL.from_json(f'../file/gaussian_model_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/gaussian_model_2_H_{lamp}.json')]
-    fig, axes = plt.subplots(3, 1)
+def plot_parameters(model: str, lamp):
+    mods = [LSF_MODEL.from_json(f'../file/{model}_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/{model}_2_H_{lamp}.json')]
+    if model == "gaussian_model":
+        fig, axes = plt.subplots(3, 1)
+        mods[0].plot_parameters(axes)
+        mods[1].plot_parameters(axes)
+    elif model == "gauss_hermite_model":
+        fig, axes = plt.subplots(3, 4)
+        mods[0].plot_parameters(axes, (3,4))
+        mods[1].plot_parameters(axes, (3,4))   
     plt.xlabel("wavelength")
-    mods[0].plot_parameters(axes)
-    mods[1].plot_parameters(axes)
+    fig.suptitle(f"{model.replace('_',' ').capitalize()}") 
     plt.legend()
     plt.show()    
 
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Create models")
+    parser.add_argument("-m", "--model", type=str, help="Ex : G, GH", choices=['G','GH'], default='G')
     parser.add_argument("-c", "--config", type=str, help="Ex : H, HK, Hhigh", default='H')
     parser.add_argument("-s", "--slice", type=int, choices=range(38), default=0)
     parser.add_argument("--nb_line", type=int, default=100)
@@ -109,6 +119,10 @@ def main() -> int:
     config = args.config
     slice = args.slice
     nb_line = args.nb_line
+    if args.model == 'G':
+        model = "gaussian_model"
+    else:
+        model = "gauss_hermite_model"
 
     print("Choose a test function")
     num = int(input('Enter a number (1-4): '))
@@ -117,9 +131,9 @@ def main() -> int:
     elif num == 2:
         test_plot(config, nb_line, slice)
     elif num == 3:
-        test_2_gaussian_models(lamp, slice)
+        test_2_models_rms(model, lamp, slice)
     elif num == 4:
-        plot_parameters_gauss_mods(lamp)
+        plot_parameters(model, lamp)
     return 0
 
 main()
