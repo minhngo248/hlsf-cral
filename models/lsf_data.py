@@ -306,7 +306,7 @@ class LSF_DATA:
         """
         data = self.get_data_line(nb_line)
         if centre:
-            ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+')
+            ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', f'Real data line {nb_line}')
         else:
             ax.plot(data['map_wave'], data['intensity'], '+')
 

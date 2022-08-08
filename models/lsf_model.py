@@ -34,7 +34,7 @@ class LSF_MODEL(object):
         listLines       : a number or ordered array-like
                         sequence of indice of lines (0 - 254), list or nested list
                         ex : 10, [5, 6, 9], [[5,6,9], [1,2]]
-        _coeff          : dict[str, list[float]]
+        _coeff          : dict[str, list[float]] or array-like
                         dictionary used for saving 2 coeff of a line after evaluating
                         parameters by LinearModel
                         Ex : Gaussian model {"Amplitude": [
@@ -123,9 +123,9 @@ class LSF_MODEL(object):
         wave_linspace = np.linspace(min_wave, max_wave, len(waves))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
         if centre:
-            ax.plot(wave_linspace, eval_intensity)
+            ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
-            ax.plot(wave_linspace+w_0, eval_intensity)
+            ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
 
     def plot_delta(self, w_0, delta_w, ax, centre=True):
         """
@@ -141,9 +141,9 @@ class LSF_MODEL(object):
         wave_linspace = np.linspace(-delta_w, delta_w, int(300*delta_w))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
         if centre:
-            ax.plot(wave_linspace, eval_intensity)
+            ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
-            ax.plot(wave_linspace+w_0, eval_intensity)
+            ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
 
     def error_rms(self, lsf_data: LSF_DATA, listLines):
         """
@@ -181,10 +181,12 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+        ax          : matplotlib.pyplot.axes
         listLines   : int or array-like[int]
                     ex : 9, [9, 10, 56]
-        ax          : matplotlib.pyplot.axes
         """
+        ax.set_xlabel("wavelength")
+        ax.set_ylabel("RMS error")
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
                 listLines = [listLines]
@@ -232,9 +234,9 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+        ax          : matplotlib.pyplot.axes        
         listLines   : int or array-like[int]
                     ex : 9, [9, 10, 56]
-        ax          : matplotlib.pyplot.axes
         """
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
@@ -247,7 +249,7 @@ class LSF_MODEL(object):
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
-    def plot_parameters(self, ax, shape=None):
+    def plot_parameters(self, ax, shape):
         """
         Plot all parameters of each models
         and a fitted-line
@@ -255,19 +257,9 @@ class LSF_MODEL(object):
         Parameters
         -----------
         ax      : matplotlib.pyplot.axes
+        shape   : tuple[int, int]
         """
-        if isinstance(shape, tuple) == False:
-            if "_2" in self.__class__.__name__:
-                # Model 2
-                for i in range(len(ax)):
-                    ax[i].plot(self._wavelines, self._coeff[2*i] + self._wavelines*self._coeff[2*i+1], '+', color='green', label='Model 2')
-            else:
-                for i, key in enumerate(self._coeff.keys()):
-                    ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
-                    ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[key]), color='red')
-                    ax[i].set_ylabel(key)
-                    ax[i].grid()
-        else:
+        if "GAUSS_HERMITE_MODEL" in self.__class__.__name__:
             if "_2" in self.__class__.__name__:
                 # Model 2
                 for i in range(shape[0]):
@@ -280,6 +272,17 @@ class LSF_MODEL(object):
                         ax[i, j].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[f'Par{4*i+j}']), color='red')
                         ax[i, j].set_ylabel(f'Par{4*i+j}')
                         ax[i, j].grid()
+        else:
+            if "_2" in self.__class__.__name__:
+                # Model 2
+                for i in range(shape[0]):
+                    ax[i].plot(self._wavelines, self._coeff[2*i] + self._wavelines*self._coeff[2*i+1], '+', color='green', label='Model 2')
+            else:
+                for i, key in enumerate(self._dic_params.keys()):
+                    ax[i].scatter(self._wavelines, self._dic_params[key], marker='o')
+                    ax[i].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[key]), color='red')
+                    ax[i].set_ylabel(key)
+                    ax[i].grid()
 
 
     def write_json(self, filename):

@@ -94,22 +94,28 @@ def plot_parameters(model: str, lamp):
     mods = [LSF_MODEL.from_json(f'../file/{model}_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/{model}_2_H_{lamp}.json')]
     if model == "gaussian_model":
         fig, axes = plt.subplots(3, 1)
-        mods[0].plot_parameters(axes)
-        mods[1].plot_parameters(axes)
+        shape = (3,1)
     elif model == "gauss_hermite_model":
         fig, axes = plt.subplots(3, 4)
+        shape = (3,4)    
         mods[0].plot_parameters(axes, (3,4))
-        mods[1].plot_parameters(axes, (3,4))   
+        mods[1].plot_parameters(axes, (3,4)) 
+    else:
+        fig, axes = plt.subplots(4, 1)
+        shape = (4, 1)
+    mods[0].plot_parameters(axes, shape)
+    mods[1].plot_parameters(axes, shape)   
     plt.xlabel("wavelength")
     fig.suptitle(f"{model.replace('_',' ').capitalize()}") 
     plt.legend()
+    plt.savefig('../images/param')
     plt.show()    
 
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Create models")
-    parser.add_argument("-m", "--model", type=str, help="Ex : G, GH", choices=['G','GH'], default='G')
+    parser.add_argument("-m", "--model", type=str, help="Ex : G, M, GH", choices=['G','M','GH'], default='G')
     parser.add_argument("-c", "--config", type=str, help="Ex : H, HK, Hhigh", default='H')
     parser.add_argument("-s", "--slice", type=int, choices=range(38), default=0)
     parser.add_argument("--nb_line", type=int, default=100)
@@ -121,8 +127,10 @@ def main() -> int:
     nb_line = args.nb_line
     if args.model == 'G':
         model = "gaussian_model"
-    else:
+    elif args.model == 'GH':
         model = "gauss_hermite_model"
+    else:
+        model = "moffat_model"
 
     print("Choose a test function")
     num = int(input('Enter a number (1-4): '))
