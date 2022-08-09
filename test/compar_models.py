@@ -92,22 +92,8 @@ def test_2_models_rms(model: str, lamp, slice):
 
 def plot_parameters(model: str, lamp):
     mods = [LSF_MODEL.from_json(f'../file/{model}_H_{lamp}.json'), LSF_MODEL.from_json(f'../file/{model}_2_H_{lamp}.json')]
-    if model == "gaussian_model":
-        fig, axes = plt.subplots(3, 1)
-    elif model == "gauss_hermite_model":
-        fig, axes = plt.subplots(3, 4)
-        mods[0].plot_parameters(axes)
-        mods[1].plot_parameters(axes) 
-    else:
-        fig, axes = plt.subplots(4, 1)
-    mods[0].plot_parameters(axes)
-    mods[1].plot_parameters(axes)   
-    plt.xlabel(r"wavelength ($\AA$)")
-    fig.suptitle(f"{model.replace('_',' ').capitalize()}") 
-    plt.legend()
-    plt.savefig('../images/param')
-    plt.show()    
-
+    mods[0].plot_parameters()
+    mods[1].plot_parameters()   
 
 
 def main() -> int:

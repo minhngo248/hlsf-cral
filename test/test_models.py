@@ -79,8 +79,6 @@ def test_evaluate_intensity(file_json, nb_line, config, slice):
     lsf_data.plot_line(nb_line, ax)
     mod.plot(w_0, waves, ax)
     plt.legend()
-    plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
-    plt.grid()
     plt.show()
 
 def test_evaluate_delta(file_json, nb_line, config, slice):
@@ -140,13 +138,8 @@ def test_plot_parameters(model, lamp, config):
     lamp        : str
     config      : str
     """
-    name = str.lower(model.__name__)
     mod = LSF_MODEL.from_json(f"../file/{str.lower(model.__name__)}_{config}_{lamp}.json")
-    fig, ax = plt.subplots(len(mod._dic_params), 1, figsize=(8, 16))
-    plt.xlabel(r"wavelength ($\AA$)")
-    mod.plot_parameters(ax)
-    plt.suptitle(f"{len(mod._dic_params)} parameters of {name.replace('_model', ' function').capitalize()}", fontweight='bold')
-    plt.show()
+    mod.plot_parameters()
 
 def test_combine_lamps(model, config, slice):
     """

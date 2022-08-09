@@ -10,6 +10,7 @@ from numpyencoder import NumpyEncoder
 from numpy.polynomial import polynomial as P
 import json
 import importlib
+import matplotlib.pyplot as plt
 from ..lib.error import *
 
 def str_to_class(modu, class_name):
@@ -34,7 +35,7 @@ class LSF_MODEL(object):
         listLines       : a number or ordered array-like
                         sequence of indice of lines (0 - 254), list or nested list
                         ex : 10, [5, 6, 9], [[5,6,9], [1,2]]
-        _coeff          : dict[str, list[float]] or array-like
+        _coeff          : dict[str, list[float]]
                         dictionary used for saving 2 coeff of a line after evaluating
                         parameters by LinearModel
                         Ex : Gaussian model {"Amplitude": [
@@ -120,6 +121,8 @@ class LSF_MODEL(object):
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
             ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
+        ax.grid()
+        ax.set_title(f'{str.lower(self.__class__.__name__).replace("_"," ").capitalize()}')
 
     def plot_delta(self, w_0, delta_w, ax, centre=True):
         """
@@ -138,6 +141,8 @@ class LSF_MODEL(object):
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
             ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
+        ax.grid()
+        ax.set_title(f'{str.lower(self.__class__.__name__).replace("_"," ").capitalize()}')
 
     def error_rms(self, lsf_data: LSF_DATA, listLines):
         """
@@ -191,6 +196,7 @@ class LSF_MODEL(object):
         err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
+        ax.set_title(f"Comparaison of {str.lower(self.__class__.__name__).replace('_',' ').capitalize()} of 4 lamps config {lsf_data.config}\nfrom line {lsf_data._lineUp} to line {lsf_data._lineDown}", fontweight='bold')
 
     def error_max(self, lsf_data: LSF_DATA, listLines):
         """
@@ -243,7 +249,7 @@ class LSF_MODEL(object):
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
 
-    def plot_parameters(self, axes):
+    def plot_parameters(self):
         """
         Plot all parameters of each models
         and a fitted-line
@@ -252,6 +258,8 @@ class LSF_MODEL(object):
         -----------
         """
         if len(self._coeff) <= 4:
+            fig, axes = plt.subplots(len(self._coeff, 1))
+            plt.xlabel(r"wavelength ($\AA$)")
             if "_2" in self.__class__.__name__:
                 # Model 2
                 for i, key in enumerate(self._coeff.keys()):
@@ -262,8 +270,13 @@ class LSF_MODEL(object):
                     axes[i].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[key]), color='red')
                     axes[i].set_ylabel(key)
                     axes[i].grid()
+            fig.suptitle(f"{self.__class__.__name__.replace('_',' ').capitalize()}") 
+            plt.legend()
+            plt.show() 
         else:
             shape = (3, 4)
+            fig, axes = plt.subplots(3, 4)
+            plt.xlabel(r"wavelength ($\AA$)")
             if "_2" in self.__class__.__name__:
                 # Model 2
                 for i in range(shape[0]):
@@ -276,6 +289,9 @@ class LSF_MODEL(object):
                         axes[i, j].plot(self._wavelines, P.polyval(self._wavelines, self._coeff[f'Par{shape[1]*i+j}']), color='red')
                         axes[i, j].set_ylabel(f'Par{shape[1]*i+j}')
                         axes[i, j].grid()
+            fig.suptitle(f"{self.__class__.__name__.replace('_',' ').capitalize()}") 
+            plt.legend()
+            plt.show() 
 
     def write_json(self, filename):
         """
