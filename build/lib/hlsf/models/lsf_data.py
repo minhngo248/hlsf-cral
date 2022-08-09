@@ -36,8 +36,7 @@ class LSF_DATA:
         detID           : int
                         number of detector (1-8)
         normal          : str
-                        'Uniform': uniform distribution by max-min
-                        'Normal' : normal distribution
+                        normalized distribution of intensity
         file_flat       : str
                         path of file flat
         """

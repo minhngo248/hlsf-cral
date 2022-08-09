@@ -2,26 +2,26 @@
     "name": "MOFFAT_MODEL_2",
     "coeff": {
         "amplitude": [
-            0.3928613257330988,
-            4.574503055741706e-07
+            0.4084047206331899,
+            -5.114345255534654e-07
         ],
         "center": [
-            0.0076883879362831,
-            -4.2486780876153657e-07
+            -0.04258761226903925,
+            2.6236350268137407e-06
         ],
         "sigma": [
-            11.783393211727994,
-            -6.919486464671142e-05
+            11.554206495973432,
+            -7.313350427567014e-05
         ],
         "beta": [
-            67.72114189956685,
-            -0.0006136425323002723
+            69.19776746576437,
+            -0.0008987626899341405
         ]
     },
     "lsf_data": [
         {
-            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
-            "file_listLines": "../text/Kr.txt",
+            "file_arc": "../exposures/ARC-Ne_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ne.txt",
             "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
             "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
             "slice": 0,

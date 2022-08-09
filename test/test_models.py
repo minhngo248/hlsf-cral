@@ -74,11 +74,11 @@ def test_evaluate_intensity(file_json, nb_line, config, slice):
 
     fig = plt.figure()
     ax = plt.axes()
-    plt.xlabel("wavelength")
+    plt.xlabel(r"wavelength ($\AA$)")
     plt.ylabel("intensity")
     lsf_data.plot_line(nb_line, ax)
     mod.plot(w_0, waves, ax)
-    ax.legend([f'Real data line {nb_line}', 'Fitted line'])
+    plt.legend()
     plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
     plt.grid()
     plt.show()
@@ -93,11 +93,11 @@ def test_evaluate_delta(file_json, nb_line, config, slice):
 
     fig = plt.figure()
     ax = plt.axes()
-    plt.xlabel("wavelength")
+    plt.xlabel(r"wavelength ($\AA$)")
     plt.ylabel("intensity")
     lsf_data.plot_line(nb_line, ax)
     mod.plot_delta(w_0, delta_w, ax)
-    ax.legend([f'Real data line {nb_line}', 'Fitted line'])
+    plt.legend()
     plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
     plt.grid()
     plt.show()    
@@ -121,7 +121,7 @@ def test_rms_error(file_arc_test, file_lines, file_wavecal, file_slitlet, model,
     mods = [model.from_json(f'../file/{str.lower(model.__name__)}_{lsf_data.config}_{lamp}.json') for lamp in lamps]
     fig = plt.figure()
     ax = plt.axes()
-    plt.xlabel("wavelength")
+    plt.xlabel(r"wavelength ($\AA$)")
     plt.ylabel("RMS error")
     for mod in mods:
         mod.plot_error_rms(lsf_data, ax)
@@ -143,7 +143,7 @@ def test_plot_parameters(model, lamp, config):
     name = str.lower(model.__name__)
     mod = LSF_MODEL.from_json(f"../file/{str.lower(model.__name__)}_{config}_{lamp}.json")
     fig, ax = plt.subplots(len(mod._dic_params), 1, figsize=(8, 16))
-    plt.xlabel("wavelength")
+    plt.xlabel(r"wavelength ($\AA$)")
     mod.plot_parameters(ax)
     plt.suptitle(f"{len(mod._dic_params)} parameters of {name.replace('_model', ' function').capitalize()}", fontweight='bold')
     plt.show()
@@ -185,7 +185,7 @@ def test_plot_9_recs(config, detID):
 
     ## Plotting
     fig, axes = plt.subplots(3,3,figsize=(7,6)) 
-    plt.xlabel('wavelength')
+    plt.xlabel(r'wavelength ($\AA$)')
     plt.ylabel('intensity')
     # plot 3 upper rectangles
     for i in range(len(lines)):
@@ -217,7 +217,7 @@ def test_scatter_9_recs(config, detID):
 
     ## Plotting
     fig, axes = plt.subplots(3,3,figsize=(7,6)) 
-    plt.xlabel('wavelength')
+    plt.xlabel(r'wavelength ($\AA$)')
     plt.ylabel('intensity')
     # plot 3 upper rectangles
     for i in range(len(lines)):
