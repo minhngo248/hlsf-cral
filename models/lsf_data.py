@@ -36,6 +36,7 @@ class LSF_DATA:
         detID           : int
                         number of detector (1-8)
         normal          : str
+                        Use for normalizing the data
                         'Uniform': uniform distribution by max-min
                         'Normal' : normal distribution
         file_flat       : str
