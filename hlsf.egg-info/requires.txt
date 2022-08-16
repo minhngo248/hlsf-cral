@@ -1,6 +1,0 @@
-astropy
-hpylib
-lmfit
-numpy
-numpyencoder
-scipy
