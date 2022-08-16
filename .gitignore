@@ -1,0 +1,20 @@
+# Ignore the node_modules directory
+build/
+
+# Ignore the node_modules directory
+hlsf.egg-info/
+
+# Ignore Logs
+logs
+*.log
+
+# Ignore the build directory
+/dist
+
+# The file containing environment variables 
+.env
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sw*
