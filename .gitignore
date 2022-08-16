@@ -18,5 +18,3 @@ logs
 .idea/
 .vscode/
 *.sw*
-
-.gitignore

@@ -7,7 +7,9 @@ Created 12th July 2022
 import hpylib as hp
 import numpy as np
 from astropy.io import fits
+from scipy import interpolate
 import math
+import matplotlib.pyplot as plt
 from ..lib import normalize
 
 class LSF_DATA:
@@ -323,6 +325,36 @@ class LSF_DATA:
         else:
             sc = ax.scatter(data['map_wave'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
         return sc
+
+    def get_all_data(self, step=1):
+        array_waves = np.empty(0, dtype=float)
+        array_intensity = np.empty(0, dtype=float)
+        array_pos = np.empty(0, dtype=float)
+        for nb_line in self.get_line_list().keys(): 
+            data = self.get_data_line(nb_line, step)
+            pos = data['map_wave']-data['waveline']
+            intensity = data['intensity']
+            array_pos = np.concatenate((array_pos, pos))
+            array_waves = np.concatenate((array_waves, np.full_like(pos, data['waveline'])))
+            array_intensity = np.concatenate((array_intensity, intensity))
+        return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
+
+    def plot_interpolate_data(self, method='linear'):
+        data = self.get_all_data()
+        array_pos = data['array_pos']
+        array_waves = data['array_waves']
+        array_intensity = data['array_intensity']
+        x = np.arange(min(array_pos), max(array_pos), step=1e-2)
+        y = np.arange(min(array_waves), max(array_waves), step=50)
+        grid_x, grid_y = np.meshgrid(x, y)
+        grid_z0 = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
+        fig = plt.figure()
+        ax = plt.axes()
+        ax.set_xlabel(r'pos ($\AA$)')
+        ax.set_ylabel(r'wavelength of line ($\AA$)')
+        c = ax.pcolormesh(x, y, grid_z0[:-1, :-1])
+        plt.colorbar(c, ax=ax, label='interpolated intensity')
+        plt.show()
 
     def to_dict(self):
         """
