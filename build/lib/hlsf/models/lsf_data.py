@@ -157,8 +157,7 @@ class LSF_DATA:
         ----------
         nb_line     : int
                     number of line in the slice
-        step        : int
-                    step of pixels
+
         Returns
         --------------
         dic     : dict['map_wave', 'waveline', 'intensity', 'x_coor', 'y_coor']
