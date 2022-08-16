@@ -3,7 +3,7 @@ import argparse
 
 def test_plot_interpolate(file_arc, file_listLines, file_wavecal, file_slitlet, slice):
     lsf_data = LSF_DATA(file_arc, file_listLines, file_wavecal, file_slitlet, slice)
-    lsf_data.plot_interpolate_data()
+    lsf_data.plot_interpolate_data(method='cubic', step=1)
 
 def main():
     parser = argparse.ArgumentParser(description="Create models")
