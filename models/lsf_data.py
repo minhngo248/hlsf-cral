@@ -327,6 +327,21 @@ class LSF_DATA:
         return sc
 
     def get_all_data(self, step=1):
+        """
+        Get relative wavelength, wavelength of all lines, intensity in
+        the slice
+
+        Parameters
+        -----------
+        step        : int
+                    step of pixels following x-coordinate
+
+        Returns
+        ------------
+        dic         : dict['array_pos': relative wavelength,
+                            'array_waves': wavelength of all lines,
+                            'array_intensity': intensity]
+        """
         array_waves = np.empty(0, dtype=float)
         array_intensity = np.empty(0, dtype=float)
         array_pos = np.empty(0, dtype=float)
@@ -339,8 +354,20 @@ class LSF_DATA:
             array_intensity = np.concatenate((array_intensity, intensity))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
 
-    def plot_interpolate_data(self, method='linear'):
-        data = self.get_all_data()
+    def plot_interpolate_data(self, method='linear', step=1):
+        """
+        Visualize image after interpolating
+
+        Parameters
+        -------------
+        method      : str
+                    'linear', 'cubic', 'nearest'
+        step        : int
+                    step of pixels following x-coordinate
+        """
+        if len(self.get_line_list()) <= 1:
+            raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
+        data = self.get_all_data(step)
         array_pos = data['array_pos']
         array_waves = data['array_waves']
         array_intensity = data['array_intensity']
