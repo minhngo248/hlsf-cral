@@ -10,6 +10,7 @@ from astropy.io import fits
 from scipy import interpolate
 import math
 import matplotlib.pyplot as plt
+from astropy import wcs
 from ..lib import normalize
 
 class LSF_DATA:
@@ -310,6 +311,8 @@ class LSF_DATA:
 
         """
         data = self.get_data_line(nb_line)
+        ax.set_xlabel(r'wavelength ($\AA$)')
+        ax.set_ylabel(('intensity'))
         if centre:
             ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', label=f'Real data line {nb_line}')
         else:
@@ -320,6 +323,8 @@ class LSF_DATA:
         Scatter with a colorbar
         """
         data = self.get_data_line(nb_line)
+        ax.set_xlabel(r'wavelength ($\AA$)')
+        ax.set_ylabel(('intensity'))
         if centre:
             sc = ax.scatter(data['map_wave']-data['waveline'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
         else:
@@ -354,20 +359,20 @@ class LSF_DATA:
             array_intensity = np.concatenate((array_intensity, intensity))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
 
-    def interpolate_data(self, method='nearest', step=1):
+    def interpolate_data(self, method='linear', step=1, step_pos=1e-2, step_wave=10):
         if len(self.get_line_list()) <= 1:
             raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
         data = self.get_all_data(step)
         array_pos = data['array_pos']
         array_waves = data['array_waves']
         array_intensity = data['array_intensity']
-        x = np.arange(min(array_pos), max(array_pos), step=1e-2)
-        y = np.arange(min(array_waves), max(array_waves), step=50)
+        x = np.arange(min(array_pos), max(array_pos), step_pos)
+        y = np.arange(min(array_waves), max(array_waves), step_wave)
         grid_x, grid_y = np.meshgrid(x, y)
         grid_z = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
         return {'x': x, 'y': y, 'grid_z': grid_z}
 
-    def plot_interpolate_data(self, method='nearest', step=1):
+    def plot_interpolate_data(self, method='linear', step=1, step_pos=1e-2, step_wave=10):
         """
         Visualize image after interpolating
 
@@ -378,7 +383,7 @@ class LSF_DATA:
         step        : int
                     step of pixels following x-coordinate
         """
-        data = self.interpolate_data(method, step)
+        data = self.interpolate_data(method, step, step_pos, step_wave)
         x = data['x']
         y = data['y']
         grid_z = data['grid_z']
@@ -390,24 +395,26 @@ class LSF_DATA:
         plt.colorbar(c, ax=ax, label='interpolated intensity')
         plt.show()
 
-    def write_fits(self, filename, method='nearest', step=1):
+    def write_fits(self, filename, method='linear', step=1, step_pos=1e-2, step_wave=10):
         """
         Save image after interpolating the data
 
         """
-        data = self.interpolate_data(method, step)
+        data = self.interpolate_data(method, step, step_pos, step_wave)
         grid_z = data['grid_z']
         with fits.open(self.file_arc) as hdul_arc:
             hdr = fits.Header()
             hdr = hdul_arc['PRIMARY'].header
             hdr['SLICE'] = self.slice
         empty_primary = fits.PrimaryHDU(header=hdr)
-        image_hdu = fits.ImageHDU(grid_z, name='INTENSITY')
-        c1 = fits.Column(name='pos', array=data['x'], format='1D')
-        c2 = fits.Column(name='wave', array=data['y'], format='1D')
-        table_hdu = fits.TableHDU.from_columns([c1], name='X.COORDINATE')
-        table_hdu1 = fits.TableHDU.from_columns([c2], name='Y.COORDINATE')
-        hdul = fits.HDUList([empty_primary, image_hdu, table_hdu, table_hdu1])
+        coord = wcs.WCS(naxis=2)
+        coord.wcs.crpix = np.array([1.0, 1.0])
+        coord.wcs.crval = np.array([data['x'][0], data['y'][0]])
+        coord.wcs.ctype = ['LINEAR', 'LINEAR']
+        coord.wcs.cd = np.array([[step_pos, 0], [0, step_wave]])
+        coord.wcs.set()
+        image_hdu = fits.ImageHDU(grid_z, coord.to_header(), name='INTENSITY')
+        hdul = fits.HDUList([empty_primary, image_hdu])
         hdul.writeto(filename, overwrite=True)
 
     def to_dict(self):

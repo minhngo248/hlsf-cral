@@ -117,6 +117,8 @@ class LSF_MODEL(object):
         min_wave = min(waves-w_0)
         wave_linspace = np.linspace(min_wave, max_wave, len(waves))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
+        ax.set_xlabel(r'wavelength ($\AA$)')
+        ax.set_ylabel(('intensity'))
         if centre:
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
@@ -137,6 +139,8 @@ class LSF_MODEL(object):
         """
         wave_linspace = np.linspace(-delta_w, delta_w, int(300*delta_w))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
+        ax.set_xlabel(r'wavelength ($\AA$)')
+        ax.set_ylabel(('intensity'))
         if centre:
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
@@ -184,7 +188,7 @@ class LSF_MODEL(object):
         listLines   : int or array-like[int]
                     ex : 9, [9, 10, 56]
         """
-        ax.set_xlabel("wavelength")
+        ax.set_xlabel(r"wavelength ($\AA$)")
         ax.set_ylabel("RMS error")
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
@@ -238,6 +242,8 @@ class LSF_MODEL(object):
         listLines   : int or array-like[int]
                     ex : 9, [9, 10, 56]
         """
+        ax.set_xlabel(r'wavelength ($\AA$)')
+        ax.set_ylabel(('Max relative err'))
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
                 listLines = [listLines]
