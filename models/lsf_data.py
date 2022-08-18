@@ -354,7 +354,20 @@ class LSF_DATA:
             array_intensity = np.concatenate((array_intensity, intensity))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
 
-    def plot_interpolate_data(self, method='linear', step=1):
+    def interpolate_data(self, method='nearest', step=1):
+        if len(self.get_line_list()) <= 1:
+            raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
+        data = self.get_all_data(step)
+        array_pos = data['array_pos']
+        array_waves = data['array_waves']
+        array_intensity = data['array_intensity']
+        x = np.arange(min(array_pos), max(array_pos), step=1e-2)
+        y = np.arange(min(array_waves), max(array_waves), step=50)
+        grid_x, grid_y = np.meshgrid(x, y)
+        grid_z = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
+        return {'x': x, 'y': y, 'grid_z': grid_z}
+
+    def plot_interpolate_data(self, method='nearest', step=1):
         """
         Visualize image after interpolating
 
@@ -365,23 +378,37 @@ class LSF_DATA:
         step        : int
                     step of pixels following x-coordinate
         """
-        if len(self.get_line_list()) <= 1:
-            raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
-        data = self.get_all_data(step)
-        array_pos = data['array_pos']
-        array_waves = data['array_waves']
-        array_intensity = data['array_intensity']
-        x = np.arange(min(array_pos), max(array_pos), step=1e-2)
-        y = np.arange(min(array_waves), max(array_waves), step=50)
-        grid_x, grid_y = np.meshgrid(x, y)
-        grid_z0 = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
+        data = self.interpolate_data(method, step)
+        x = data['x']
+        y = data['y']
+        grid_z = data['grid_z']
         fig = plt.figure()
         ax = plt.axes()
         ax.set_xlabel(r'pos ($\AA$)')
         ax.set_ylabel(r'wavelength of line ($\AA$)')
-        c = ax.pcolormesh(x, y, grid_z0[:-1, :-1])
+        c = ax.pcolormesh(x, y, grid_z[:-1, :-1])
         plt.colorbar(c, ax=ax, label='interpolated intensity')
         plt.show()
+
+    def write_fits(self, filename, method='nearest', step=1):
+        """
+        Save image after interpolating the data
+
+        """
+        data = self.interpolate_data(method, step)
+        grid_z = data['grid_z']
+        with fits.open(self.file_arc) as hdul_arc:
+            hdr = fits.Header()
+            hdr = hdul_arc['PRIMARY'].header
+            hdr['SLICE'] = self.slice
+        empty_primary = fits.PrimaryHDU(header=hdr)
+        image_hdu = fits.ImageHDU(grid_z, name='INTENSITY')
+        c1 = fits.Column(name='pos', array=data['x'], format='1D')
+        c2 = fits.Column(name='wave', array=data['y'], format='1D')
+        table_hdu = fits.TableHDU.from_columns([c1], name='X.COORDINATE')
+        table_hdu1 = fits.TableHDU.from_columns([c2], name='Y.COORDINATE')
+        hdul = fits.HDUList([empty_primary, image_hdu, table_hdu, table_hdu1])
+        hdul.writeto(filename, overwrite=True)
 
     def to_dict(self):
         """

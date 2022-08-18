@@ -258,7 +258,7 @@ class LSF_MODEL(object):
         -----------
         """
         if len(self._coeff) <= 4:
-            fig, axes = plt.subplots(len(self._coeff, 1))
+            fig, axes = plt.subplots(len(self._coeff), 1)
             plt.xlabel(r"wavelength ($\AA$)")
             if "_2" in self.__class__.__name__:
                 # Model 2
