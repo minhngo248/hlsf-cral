@@ -41,7 +41,7 @@ class LSF_DATA:
         normal          : str
                         Use for normalizing the data
                         'Uniform': uniform distribution by max-min
-                        'Normal' : normal distribution
+                        'Normal' : normal distribution divised by Amplitude in Gaussian function
         file_flat       : str
                         path of file flat
         """
@@ -71,7 +71,7 @@ class LSF_DATA:
         except ValueError:
             self.lamp = 'linspace256'
 
-        self._listLines = self.load_line_list(self.lamp, file_listLines)
+        self._listLines = self._load_line_list(file_listLines)
         # Open table of wavelengths
         self._table_wave = hp.WAVECAL_TABLE.from_FITS(self.file_wavecal, self.detID)
         # Open slitlet table
@@ -113,15 +113,14 @@ class LSF_DATA:
         self.pixel2dlambda = abs(np.nanmean(np.diff(self._array_wave_c)))
 
 
-    def load_line_list(self, lamp, filename):
+    def _load_line_list(self, filename):
         """
         Get a list of wavelength from a TXT or FITS file
 
         Parameters
         ------------
-        lamp        : str
-                    a lamp ('Ar', 'Ne', 'Xe', 'Kr', 'linspace256')
         filename    : str
+                    file containing all the wavelength of lines in a slice
                     FITS or TXT file
 
         Returns
@@ -152,7 +151,7 @@ class LSF_DATA:
         file_flat = dic['file_flat']
         return obj(file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, normal, file_flat)
 
-    def get_data_line(self, nb_line, step=1):
+    def get_data_line(self, nb_line):
         """
         Extract all necessary informations for modelising the LSF
 
@@ -160,8 +159,7 @@ class LSF_DATA:
         ----------
         nb_line     : int
                     number of line in the slice
-        step        : int
-                    step of pixels
+
         Returns
         --------------
         dic     : dict['map_wave', 'waveline', 'intensity', 'x_coor', 'y_coor']
@@ -194,7 +192,7 @@ class LSF_DATA:
                 upper_y_taken = upper_y+4+1
             y_array = np.arange(down_y_taken, upper_y_taken)
             # Ignore 4 pixels from left and right bord
-            x_array = np.arange(math.ceil(point_l[0])+4, math.floor(point_r[0])-4, step)
+            x_array = np.arange(math.ceil(point_l[0])+4, math.floor(point_r[0])-4)
         else:
             if (down_y-12 < 0) & (upper_y+12+1 <= 12287):
                 down_y_taken = 0
@@ -206,7 +204,7 @@ class LSF_DATA:
                 down_y_taken = down_y-12
                 upper_y_taken = upper_y+12+1
             y_array = np.arange(down_y_taken, upper_y_taken)
-            x_array = np.arange(math.ceil(point_l[0])+12, math.floor(point_r[0])-12, step)        
+            x_array = np.arange(math.ceil(point_l[0])+12, math.floor(point_r[0])-12)        
         x_cor, y_cor = np.meshgrid(x_array, y_array)
 
         # Image after being masked
@@ -306,40 +304,49 @@ class LSF_DATA:
         Parameters
         -------------
         nb_line     : int
-                    number of line (0-254)
+                    number of line in the slice
         ax          : matplotlib.pyplot.axes
-
+        centre      : bool
+                    True : relative wavelength centered in 0
+                    False: real wavelength of each point
         """
         data = self.get_data_line(nb_line)
         ax.set_xlabel(r'wavelength ($\AA$)')
-        ax.set_ylabel(('intensity'))
+        ax.set_ylabel('intensity')
         if centre:
             ax.plot(data['map_wave']-data['waveline'], data['intensity'], '+', label=f'Real data line {nb_line}')
         else:
             ax.plot(data['map_wave'], data['intensity'], '+', label=f'Real data line {nb_line}')
+        ax.legend()
 
     def scatter(self, nb_line, ax, centre = True, c: str = 'x_coor'):
         """
         Scatter with a colorbar
+
+        Parameters
+        -------------
+        nb_line     : int
+                    number of line in the slice
+        ax          : matplotlib.pyplot.axes
+        centre      : bool (default : True)
+                    True : relative wavelength centered in 0
+                    False: real wavelength of each point
+        c           : str
+                    color depend in which property of data of a line
         """
         data = self.get_data_line(nb_line)
         ax.set_xlabel(r'wavelength ($\AA$)')
-        ax.set_ylabel(('intensity'))
+        ax.set_ylabel('intensity')
         if centre:
             sc = ax.scatter(data['map_wave']-data['waveline'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
         else:
             sc = ax.scatter(data['map_wave'], data['intensity'], c=data[c], marker='.', alpha=0.5, cmap='viridis')
         return sc
 
-    def get_all_data(self, step=1):
+    def get_all_data(self):
         """
         Get relative wavelength, wavelength of all lines, intensity in
         the slice
-
-        Parameters
-        -----------
-        step        : int
-                    step of pixels following x-coordinate
 
         Returns
         ------------
@@ -351,7 +358,7 @@ class LSF_DATA:
         array_intensity = np.empty(0, dtype=float)
         array_pos = np.empty(0, dtype=float)
         for nb_line in self.get_line_list().keys(): 
-            data = self.get_data_line(nb_line, step)
+            data = self.get_data_line(nb_line)
             pos = data['map_wave']-data['waveline']
             intensity = data['intensity']
             array_pos = np.concatenate((array_pos, pos))
@@ -359,10 +366,25 @@ class LSF_DATA:
             array_intensity = np.concatenate((array_intensity, intensity))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
 
-    def interpolate_data(self, method='linear', step=1, step_pos=1e-2, step_wave=10):
+    def interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
+        """ 
+        Parameters
+        -----------
+        step_pos    : float
+                    distance of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
+        step_wave   : float
+                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
+
+        Returns
+        ------------
+        dic         : dict
+                    x : x-axis of image
+                    y : y-axis of image
+                    grid_z : image after being interpolated
+        """
         if len(self.get_line_list()) <= 1:
             raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
-        data = self.get_all_data(step)
+        data = self.get_all_data()
         array_pos = data['array_pos']
         array_waves = data['array_waves']
         array_intensity = data['array_intensity']
@@ -372,7 +394,7 @@ class LSF_DATA:
         grid_z = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
         return {'x': x, 'y': y, 'grid_z': grid_z}
 
-    def plot_interpolate_data(self, method='linear', step=1, step_pos=1e-2, step_wave=10):
+    def plot_interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
         """
         Visualize image after interpolating
 
@@ -380,10 +402,12 @@ class LSF_DATA:
         -------------
         method      : str
                     'linear', 'cubic', 'nearest'
-        step        : int
-                    step of pixels following x-coordinate
+        step_pos    : float
+                    delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
+        step_wave   : float
+                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
         """
-        data = self.interpolate_data(method, step, step_pos, step_wave)
+        data = self.interpolate_data(method, step_pos, step_wave)
         x = data['x']
         y = data['y']
         grid_z = data['grid_z']
@@ -395,12 +419,12 @@ class LSF_DATA:
         plt.colorbar(c, ax=ax, label='interpolated intensity')
         plt.show()
 
-    def write_fits(self, filename, method='linear', step=1, step_pos=1e-2, step_wave=10):
+    def write_fits(self, filename, method='linear', step_pos=1e-2, step_wave=10):
         """
         Save image after interpolating the data
 
         """
-        data = self.interpolate_data(method, step, step_pos, step_wave)
+        data = self.interpolate_data(method, step_pos, step_wave)
         grid_z = data['grid_z']
         with fits.open(self.file_arc) as hdul_arc:
             hdr = fits.Header()
@@ -419,9 +443,6 @@ class LSF_DATA:
 
     def to_dict(self):
         """
-        Parameters
-        ------------
-
         Returns
         -------------
         dic : dict[file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, normal, file_flat]

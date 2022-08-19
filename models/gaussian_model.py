@@ -10,8 +10,9 @@ from .lsf_model import LSF_MODEL
 from ..lib.fitted_gauss import fitted_gauss
 
 class GAUSSIAN_MODEL(LSF_MODEL):
-    """
+    r"""
     Gaussian model
+    4 parameters :math:`A`, :math:`\mu`, :math:`\sigma`
     """
     def __init__(self, lsf_data, listLines=None, _coeff=None) -> None:
         super().__init__(lsf_data, listLines, _coeff)

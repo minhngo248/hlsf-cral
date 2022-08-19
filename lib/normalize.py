@@ -8,8 +8,11 @@ import numpy as np
 from .fitted_gauss import *
 
 def normalize(image_cut):
-    """
+    r"""
     Normalize an image by uniform distribution
+    ```{math}
+    f(x) = \big \frac{x - min}{max - min}
+    ```
 
     Parameters
     ----------

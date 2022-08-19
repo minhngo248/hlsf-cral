@@ -33,8 +33,9 @@ class LSF_MODEL(object):
         lsf_data        : array-like(LSF_DATA) or LSF_DATA
                         data needed save in this object
         listLines       : a number or ordered array-like
-                        sequence of indice of lines (0 - 254), list or nested list
-                        ex : 10, [5, 6, 9], [[5,6,9], [1,2]]
+                        sequence of indice of lines, list or nested list
+                        ex : for one lamp: 10, [5, 6, 9]
+                        for numerous lamps :[[5,6,9], [1,2], ...]
         _coeff          : dict[str, list[float]]
                         dictionary used for saving 2 coeff of a line after evaluating
                         parameters by LinearModel
@@ -110,20 +111,22 @@ class LSF_MODEL(object):
                 wavelength of line
         waves   : array-like
         ax      : matplotlib.pyplot.axes
+                ax for plotting figures
         centre  : bool
-                center in 0 of wavelength : True or False
+                Real wavelength : False, relative wavelength centered in 0 : True
         """
         max_wave = max(waves-w_0)
         min_wave = min(waves-w_0)
         wave_linspace = np.linspace(min_wave, max_wave, len(waves))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
         ax.set_xlabel(r'wavelength ($\AA$)')
-        ax.set_ylabel(('intensity'))
+        ax.set_ylabel('intensity')
         if centre:
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
             ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
         ax.grid()
+        ax.legend()
         ax.set_title(f'{str.lower(self.__class__.__name__).replace("_"," ").capitalize()}')
 
     def plot_delta(self, w_0, delta_w, ax, centre=True):
@@ -133,19 +136,21 @@ class LSF_MODEL(object):
         w_0     : float
                 wavelength of line
         delta_w : positive float
+                largeur of wavelength wanted to visualize
         ax      : matplotlib.pyplot.axes
         centre  : bool
-                center in 0 of wavelength : True or False
+                Real wavelength : False, relative wavelength centered in 0 : True
         """
         wave_linspace = np.linspace(-delta_w, delta_w, int(300*delta_w))
         eval_intensity = self.evaluate_intensity(w_0, wave_linspace+w_0)
         ax.set_xlabel(r'wavelength ($\AA$)')
-        ax.set_ylabel(('intensity'))
+        ax.set_ylabel('intensity')
         if centre:
             ax.plot(wave_linspace, eval_intensity, label=f"{self.__class__.__name__} fit")
         else:
             ax.plot(wave_linspace+w_0, eval_intensity, label=f"{self.__class__.__name__} fit")
         ax.grid()
+        ax.legend()
         ax.set_title(f'{str.lower(self.__class__.__name__).replace("_"," ").capitalize()}')
 
     def error_rms(self, lsf_data: LSF_DATA, listLines):
@@ -155,7 +160,9 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+                    data of a slice for evaluating intensity
         listLines   : int or array-like[int]
+                    list of lines in a slice extracted from FITS or TXT file
                     ex : 9, [9, 10, 56]
 
         Returns
@@ -184,8 +191,10 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+                    data of a slice for evaluating intensity
         ax          : matplotlib.pyplot.axes
         listLines   : int or array-like[int]
+                    list of lines in a slice extracted from FITS or TXT file
                     ex : 9, [9, 10, 56]
         """
         ax.set_xlabel(r"wavelength ($\AA$)")
@@ -200,6 +209,7 @@ class LSF_MODEL(object):
         err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
+        ax.legend()
         ax.set_title(f"Comparaison of {str.lower(self.__class__.__name__).replace('_',' ').capitalize()} of 4 lamps config {lsf_data.config}\nfrom line {lsf_data._lineUp} to line {lsf_data._lineDown}", fontweight='bold')
 
     def error_max(self, lsf_data: LSF_DATA, listLines):
@@ -209,7 +219,9 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+                    data of a slice for evaluating intensity
         listLines   : int or array-like[int]
+                    list of lines in a slice extracted from FITS or TXT file
                     ex : 9, [9, 10, 56]
 
         Returns
@@ -238,12 +250,14 @@ class LSF_MODEL(object):
         Parameters
         ------------
         lsf_data    : LSF_DATA
+                    data of a slice for evaluating intensity
         ax          : matplotlib.pyplot.axes        
         listLines   : int or array-like[int]
+                    list of lines in a slice extracted from FITS or TXT file
                     ex : 9, [9, 10, 56]
         """
         ax.set_xlabel(r'wavelength ($\AA$)')
-        ax.set_ylabel(('Max relative err'))
+        ax.set_ylabel('Max relative err')
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
                 listLines = [listLines]
