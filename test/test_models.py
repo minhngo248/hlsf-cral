@@ -13,7 +13,7 @@ import numpy as np
 
 
 ## Constants
-lamps = ["Ar", "Kr", "Ne", "Xe"]
+lamps = ["Ne"]
 models_class = [GAUSSIAN_MODEL, MOFFAT_MODEL, GAUSS_HERMITE_MODEL]
 
 def test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet,
@@ -78,7 +78,6 @@ def test_evaluate_intensity(file_json, nb_line, config, slice):
     plt.ylabel("intensity")
     lsf_data.plot_line(nb_line, ax)
     mod.plot(w_0, waves, ax)
-    plt.legend()
     plt.show()
 
 def test_evaluate_delta(file_json, nb_line, config, slice):
@@ -95,7 +94,6 @@ def test_evaluate_delta(file_json, nb_line, config, slice):
     plt.ylabel("intensity")
     lsf_data.plot_line(nb_line, ax)
     mod.plot_delta(w_0, delta_w, ax)
-    plt.legend()
     plt.title(f'{str.lower(mod.__class__.__name__).replace("_"," ").capitalize()} RMS error {mod.lsf_data[0].lamp} {mod.error_rms(lsf_data, nb_line)}')
     plt.grid()
     plt.show()    
@@ -254,7 +252,7 @@ def main() -> int:
     if num == 1:
         test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat=file_flat)
     elif num == 2:
-        test_evaluate_delta(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
+        test_evaluate_intensity(f'../file/{str.lower(model.__name__)}_{config}_{lamp}.json', nb_line, config, slice)
     elif num == 3:
         test_rms_error(f"../exposures/ARC-{lamp}_CLEAR_20MAS_{config}_PRM.fits", file_listLines, file_wavecal, file_slitlet, model, slice) 
     elif num == 4:

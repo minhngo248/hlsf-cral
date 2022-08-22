@@ -14,3 +14,4 @@ from .moffat_model import MOFFAT_MODEL
 from .gaussian_model_2 import GAUSSIAN_MODEL_2
 from .moffat_model_2 import MOFFAT_MODEL_2
 from .gauss_hermite_model_2 import GAUSS_HERMITE_MODEL_2
+from .lsf_interpolation import LSF_INTERPOLATION

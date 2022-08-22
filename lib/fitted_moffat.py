@@ -11,18 +11,17 @@ import numpy as np
 def moffat(x, A, mu, sigma, beta):
     return A * (((x-mu)/sigma)**2 + 1)**(-beta)
 
-def fitted_moffat(wavelength, intensity):
-    """
-    err_func = lambda params, x, y: moffat(x, *params) - y
-    ind = np.argmin(abs(max(intensity) - intensity))
-    A = max(intensity)
-    mu = wavelength[ind]
-    ind_half = np.argmin(abs(max(intensity)/2 - intensity))
-    sigma = abs(wavelength[ind_half] - mu)
-    beta = 1
-    popt, ier = leastsq(err_func, x0=[A,mu,sigma,beta], args=(wavelength, intensity)) 
-    li = ['amplitude', 'center', 'sigma', 'beta']
-    return dict(zip(li, popt))
+def fitted_moffat(wavelength, intensity):    
+    mod = MoffatModel()    
+    init_pars = mod.guess(intensity, x=wavelength)
+    out = mod.fit(intensity, init_pars, x=wavelength)
+    valu = []
+    for val in out.params.values():
+        valu.append(val.value)
+    dic = dict(zip(out.params.keys(), valu))
+    dic.popitem()
+    dic.popitem()
+    return dic
     """
     mod = MoffatModel()    
     ind = np.argmin(abs(max(intensity) - intensity))
@@ -39,4 +38,4 @@ def fitted_moffat(wavelength, intensity):
     dic.popitem()
     dic.popitem()
     return dic
-    
+    """

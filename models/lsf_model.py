@@ -197,8 +197,6 @@ class LSF_MODEL(object):
                     list of lines in a slice extracted from FITS or TXT file
                     ex : 9, [9, 10, 56]
         """
-        ax.set_xlabel(r"wavelength ($\AA$)")
-        ax.set_ylabel("RMS error")
         if isinstance(listLines, (np.ndarray, range, list)):            
             if type(listLines) == int:
                 listLines = [listLines]
@@ -209,8 +207,7 @@ class LSF_MODEL(object):
         err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
-        ax.legend()
-        ax.set_title(f"Comparaison of {str.lower(self.__class__.__name__).replace('_',' ').capitalize()} of 4 lamps config {lsf_data.config}\nfrom line {lsf_data._lineUp} to line {lsf_data._lineDown}", fontweight='bold')
+        
 
     def error_max(self, lsf_data: LSF_DATA, listLines):
         """

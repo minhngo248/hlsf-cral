@@ -6,6 +6,7 @@ Created 12th July 2022
 
 from ..lib.fitted_moffat import fitted_moffat
 from .lsf_model import LSF_MODEL
+from lmfit.models import LinearModel
 import numpy as np
 from numpy.polynomial import polynomial as P
 
@@ -32,10 +33,14 @@ class MOFFAT_MODEL(LSF_MODEL):
             params_linear = {'amplitude': None, 'center': None, 'sigma': None, 'beta': None}
             for key in self._dic_params.keys():
                 if len(self._wavelines) > 1:
-                    coeff = P.polyfit(self._wavelines, self._dic_params[key], deg=1)
+                    mod = LinearModel()
+                    for key, value in self._dic_params.items():
+                        pars = mod.guess(value, x=self._wavelines)
+                        out = mod.fit(value, pars, x=self._wavelines)
+                        params_linear[key] = [out.params['intercept'].value, out.params['slope'].value]
                 elif len(self._wavelines) == 1:
                     coeff = P.polyfit(self._wavelines, self._dic_params[key], deg=0)
-                params_linear[key] = coeff
+                    params_linear[key] = coeff
             self._coeff = params_linear
 
     def evaluate_intensity(self, w_0, waves):
