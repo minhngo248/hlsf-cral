@@ -203,6 +203,6 @@ class LSF_INTERPOLATION(object):
                 listLines = np.asarray(listLines)
         else:
             listLines = np.arange(self._lineUp, self._lineDown+1)
-        err = self.error_rms(listLines)
-        wavelength_line = [self.get_data_line(nb_line)['waveline'] for nb_line in listLines]
+        err = self.error_rms(lsf_data, listLines)
+        wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)
