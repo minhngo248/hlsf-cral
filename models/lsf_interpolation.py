@@ -184,3 +184,25 @@ class LSF_INTERPOLATION(object):
         if len(err) == 1:
             err = err[0]
         return err
+
+    def plot_error_rms(self, lsf_data: LSF_DATA, ax, listLines=None):
+        """
+        Parameters
+        ------------
+        lsf_data    : LSF_DATA
+                    data of a slice for evaluating intensity
+        ax          : matplotlib.pyplot.axes
+        listLines   : int or array-like[int]
+                    list of lines in a slice extracted from FITS or TXT file
+                    ex : 9, [9, 10, 56]
+        """
+        if isinstance(listLines, (np.ndarray, range, list)):            
+            if type(listLines) == int:
+                listLines = [listLines]
+            else:
+                listLines = np.asarray(listLines)
+        else:
+            listLines = np.arange(self._lineUp, self._lineDown+1)
+        err = self.error_rms(listLines)
+        wavelength_line = [self.get_data_line(nb_line)['waveline'] for nb_line in listLines]
+        ax.plot(wavelength_line, err)
