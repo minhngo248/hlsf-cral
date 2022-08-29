@@ -70,6 +70,8 @@ class LSF_INTERPOLATION(object):
         """ 
         Parameters
         -----------
+        method      : str
+                    method of interpolation 'nearest', 'linear', 'cubic'
         step_pos    : float
                     distance of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
         step_wave   : float
@@ -82,7 +84,10 @@ class LSF_INTERPOLATION(object):
                     y : y-axis of image
                     grid_z : image after being interpolated
         """
-        if len(self._listLines) <= 1:
+        num = 0
+        for li in self._listLines:
+            num += len(li)
+        if num <= 1:
             raise NameError(f"Cannot interpolate, not enough lines")
         data = self.get_all_data()
         array_pos = data['array_pos']
@@ -101,7 +106,7 @@ class LSF_INTERPOLATION(object):
         Parameters
         -------------
         method      : str
-                    'linear', 'cubic', 'nearest'
+                    method of interpolation, 'linear', 'cubic', 'nearest'
         step_pos    : float
                     delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
         step_wave   : float
@@ -122,26 +127,54 @@ class LSF_INTERPOLATION(object):
     def evaluate_intensity(self, w_0, waves):
         """
         Evaluation of intensity from a number of line in the slice
+        take the closest wavelength of image to extract intensity
+
+        Parameters
+        ------------
+        w_0     : float
+                wavelength of lines
+        waves   : float
+                wavelength of each point in LSF 
+                ATTENTION: not relative wavelength to w_0
+        
+        Returns
+        -------------
+        evaluated_intensity : array-like
+                            intensity extracted from interpolated image
         """
         interpolated_data = self.interpolate_data()
-        x_coor_left = np.argmin(abs(interpolated_data['x']-min(waves-w_0)))
-        x_coor_right = np.argmin(abs(interpolated_data['x']-max(waves-w_0)))
+        x_coor = [np.argmin(abs(interpolated_data['x']-w)) for w in waves-w_0]
         y_coor = np.argmin(abs(interpolated_data['y']-w_0))
-        x_coor = np.linspace(x_coor_left, x_coor_right, len(waves))
         y_coor = np.full_like(x_coor, y_coor)
         evaluated_intensity = ndimage.map_coordinates(interpolated_data['grid_z'], [y_coor, x_coor], order=1)
-        pos = np.linspace(interpolated_data['x'][x_coor_left], interpolated_data['x'][x_coor_right], len(evaluated_intensity))
-        return pos, evaluated_intensity
+        return evaluated_intensity
 
     def plot_evaluated_intensity(self, lsf_data: LSF_DATA, nb_line, ax, centre=True):
+        """
+        Visualization of intensity from a number of line in the slice
+        take the closest wavelength of image to extract intensity
+
+        Parameters
+        ------------
+        lsf_data    : LSF_DATA
+                    data of one slice to measure
+        nb_line     : int
+                    number of line in the slice in lsf_data
+        ax          : axes
+                    ax to plot
+        centre      : bool
+                    True : relative wavelength to wavelength of line, which is centered in 0
+                    False: wavelength of each point
+        """        
         data = lsf_data.get_data_line(nb_line)
         waves = data['map_wave']
         w_0 = data['waveline']
-        pos, evaluated_intensity = self.evaluate_intensity(w_0, waves)
+        waves = np.linspace(min(waves), max(waves), len(waves))
+        evaluated_intensity = self.evaluate_intensity(w_0, waves)
         if centre:
-            ax.plot(pos, evaluated_intensity, label='Bspline data')
+            ax.plot(waves-w_0, evaluated_intensity, label='Bspline data')
         else: 
-            ax.plot(pos+w_0, evaluated_intensity, label='Bspline data')
+            ax.plot(waves, evaluated_intensity, label='Bspline data')
 
     def error_rms(self, lsf_data: LSF_DATA, listLines):
         """
@@ -170,13 +203,8 @@ class LSF_INTERPOLATION(object):
             data = lsf_data.get_data_line(nb_line)
             waves = data['map_wave']
             intensity = data['intensity']
-            # Sort
-            tup = [(waves[i], intensity[i]) for i in range(len(waves))]
-            array_tup = np.array(tup, dtype=[('waves', float), ('intensity', float)])
-            array_tup = np.sort(array_tup, order='waves')
-            intensity = array_tup['intensity']
             # Take evaluated intensity
-            eval_intensity = self.evaluate_intensity(w_0, waves)[1]
+            eval_intensity = self.evaluate_intensity(w_0, waves)
             mask = ~np.isnan(eval_intensity)
             eval_intensity = eval_intensity[mask]
             intensity = intensity[mask]
@@ -202,7 +230,7 @@ class LSF_INTERPOLATION(object):
             else:
                 listLines = np.asarray(listLines)
         else:
-            listLines = np.arange(self._lineUp, self._lineDown+1)
+            listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         err = self.error_rms(lsf_data, listLines)
         wavelength_line = [lsf_data.get_data_line(nb_line)['waveline'] for nb_line in listLines]
         ax.plot(wavelength_line, err)

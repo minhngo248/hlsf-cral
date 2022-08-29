@@ -8,7 +8,6 @@ import hpylib as hp
 import numpy as np
 from astropy.io import fits
 from scipy import interpolate
-from scipy import ndimage
 import math
 import matplotlib.pyplot as plt
 from astropy import wcs
@@ -142,6 +141,16 @@ class LSF_DATA:
     def from_dict(obj, dic: dict):
         """
         Constructor from a dictionary
+
+        Parameters
+        --------------
+        dic     : dict
+                dictionary containing the LSF data
+
+        Returns
+        --------------
+        obj     : object
+                self-object LSF data
         """
         file_arc = dic['file_arc']
         file_listLines = dic['file_listLines']
@@ -371,6 +380,8 @@ class LSF_DATA:
         """ 
         Parameters
         -----------
+        method      : str, method of interpolation
+                    'nearest', 'linear', 'cubic'
         step_pos    : float
                     distance of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
         step_wave   : float
@@ -401,7 +412,7 @@ class LSF_DATA:
 
         Parameters
         -------------
-        method      : str
+        method      : str, method of interpolation
                     'linear', 'cubic', 'nearest'
         step_pos    : float
                     delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
@@ -424,6 +435,16 @@ class LSF_DATA:
         """
         Save image after interpolating the data
 
+        Parameters
+        -------------
+        filename        : str
+                        path to created file
+        method      : str, method of interpolation
+                    'linear', 'cubic', 'nearest'
+        step_pos    : float
+                    delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
+        step_wave   : float
+                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
         """
         data = self.interpolate_data(method, step_pos, step_wave)
         grid_z = data['grid_z']

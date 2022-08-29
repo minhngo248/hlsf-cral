@@ -1,0 +1,59 @@
+{
+    "name": "GAUSSIAN_MODEL_2",
+    "coeff": {
+        "Amplitude": [
+            0.9998446671403924,
+            7.409868902799843e-09
+        ],
+        "Mean": [
+            0.0008147554638739208,
+            -4.9746729564018525e-09
+        ],
+        "Sigma": [
+            0.9938164249903982,
+            3.1619366986981935e-07
+        ]
+    },
+    "lsf_data": [
+        {
+            "file_arc": "../exposures/ARC-Ar_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ar.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": "Normal",
+            "file_flat": null
+        },
+        {
+            "file_arc": "../exposures/ARC-Kr_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Kr.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": "Normal",
+            "file_flat": null
+        },
+        {
+            "file_arc": "../exposures/ARC-Ne_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Ne.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": "Normal",
+            "file_flat": null
+        },
+        {
+            "file_arc": "../exposures/ARC-Xe_CLEAR_20MAS_H_PRM.fits",
+            "file_listLines": "../text/Xe.txt",
+            "file_wavecal": "../exposures/WAVECAL_TABLE_20MAS_H.fits",
+            "file_slitlet": "../exposures/SLITLET_TABLE_20MAS_H.fits",
+            "slice": 0,
+            "detID": 1,
+            "normal": "Normal",
+            "file_flat": null
+        }
+    ]
+}

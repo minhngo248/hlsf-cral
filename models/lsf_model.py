@@ -110,6 +110,7 @@ class LSF_MODEL(object):
         w_0     : float
                 wavelength of line
         waves   : array-like
+                wavelength of each point
         ax      : matplotlib.pyplot.axes
                 ax for plotting figures
         centre  : bool
@@ -270,9 +271,6 @@ class LSF_MODEL(object):
         """
         Plot all parameters of each models
         and a fitted-line
-
-        Parameters
-        -----------
         """
         if len(self._coeff) <= 4:
             fig, axes = plt.subplots(len(self._coeff), 1)

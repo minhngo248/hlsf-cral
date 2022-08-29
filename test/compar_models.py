@@ -116,6 +116,10 @@ def main() -> int:
         model = "moffat_model"
 
     print("Choose a test function")
+    print('1. Show RMS error of 3 models\n')
+    print('2. Evaluate intensity by 3 models\n')
+    print('3. Show RMS error of model 1 and model 2\n')
+    print('4. Show parameters by models\n')
     num = int(input('Enter a number (1-4): '))
     if num == 1:
         test_rms_models(config, slice)

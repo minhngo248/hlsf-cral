@@ -248,6 +248,13 @@ def main() -> int:
     file_flat = f"../exposures/FLAT-CONT2_CLEAR_20MAS_{config}_PRM.fits"
 
     print("Choose a test function")
+    print('1. Import model to json file\n')
+    print('2. Evaluate intensity by model\n')
+    print('3. Show RMS error\n')
+    print('4. Show parameters by models\n')
+    print('5. Import model with numerous lamps to json\n')
+    print('6. LSF plot 9 zones of the image\n')
+    print('7. LSF scatter 9 zones of the image\n')
     num = int(input('Enter a number (1-7): '))
     if num == 1:
         test_create_json(model, file_arc, file_listLines, file_wavecal, file_slitlet, slice, detID, file_flat=file_flat)
