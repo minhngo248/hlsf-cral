@@ -1,12 +1,24 @@
+"""
+Created 12th July 2022
+
+@author : minh.ngo
+"""
+
 import numpy as np
-from scipy import interpolate
 from scipy import ndimage
+from scipy import interpolate
+from astropy import wcs
 import matplotlib.pyplot as plt
+from astropy.io import fits
 from ..lib.error import *
 from . import LSF_DATA
 
 class LSF_INTERPOLATION(object):
-    def __init__(self, list_lsf_data, listLines=None) -> None:
+    """
+    Interpolation by method, step of x-axis,
+    step of y-axis
+    """
+    def __init__(self, list_lsf_data, listLines=None, method='linear', step_pos=1e-2, step_wave=10) -> None:
         """
         Constructor
 
@@ -20,12 +32,15 @@ class LSF_INTERPOLATION(object):
                                 sequence of indice of lines, list or nested list
                                 ex : for one lamp: 10, [5, 6, 9]
                                 for numerous lamps :[[5,6,9], [1,2], ...]
+        method                  : string (default: 'linear')
+                                method of interpolation
+        step_pos                : float (default: 1e-2)
+                                distance of step of relative position (Angstrom)
+        step_wave               : float (default: 10)
+                                step of wavelength of lines
         """            
         if listLines == None:
-            if type(list_lsf_data) == LSF_DATA:
-                self.list_lsf_data = np.asarray([list_lsf_data])  
-            else:
-                self.list_lsf_data = list_lsf_data
+            self.list_lsf_data = np.asarray([list_lsf_data]) if type(list_lsf_data) == LSF_DATA else list_lsf_data
             li = np.empty(len(self.list_lsf_data), dtype=np.ndarray)
             for i in range(len(li)):
                 li[i] = np.array(list(self.list_lsf_data[i].get_line_list().keys()))
@@ -33,16 +48,19 @@ class LSF_INTERPOLATION(object):
         else:
             if type(list_lsf_data) == LSF_DATA:
                 self.list_lsf_data = np.asarray([list_lsf_data])
-                if type(listLines) == int:
-                    self._listLines = np.asarray([[listLines]]) 
-                else: 
-                    self._listLines = np.asarray([listLines]) 
+                self._listLines = np.asarray([[listLines]]) if type(listLines) == int else np.asarray([listLines]) 
             else:
                 self.list_lsf_data = list_lsf_data
                 self._listLines = listLines  
         for i in range(1, len(self.list_lsf_data)):
             if self.list_lsf_data[i] != self.list_lsf_data[0]:
                 raise NameError("Config, detID or type de normalization did not work")
+        for lsf in self.list_lsf_data:
+            lsf.interp = True
+        self._method = method
+        self._step_pos = step_pos
+        self._step_wave = step_wave
+        self._interpolated_data = self._interpolate_data(self._method, self._step_pos, self._step_wave)
 
 
     def get_all_data(self):
@@ -66,7 +84,7 @@ class LSF_INTERPOLATION(object):
             array_intensity = np.concatenate((array_intensity, data['array_intensity']))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
 
-    def interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
+    def _interpolate_data(self, method, step_pos, step_wave):
         """ 
         Parameters
         -----------
@@ -99,20 +117,11 @@ class LSF_INTERPOLATION(object):
         grid_z = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
         return {'x': x, 'y': y, 'grid_z': grid_z}
 
-    def plot_interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
+    def plot_interpolate_data(self):
         """
         Visualize image after interpolating
-
-        Parameters
-        -------------
-        method      : str
-                    method of interpolation, 'linear', 'cubic', 'nearest'
-        step_pos    : float
-                    delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
-        step_wave   : float
-                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
         """
-        data = self.interpolate_data(method, step_pos, step_wave)
+        data = self._interpolated_data
         x = data['x']
         y = data['y']
         grid_z = data['grid_z']
@@ -123,6 +132,32 @@ class LSF_INTERPOLATION(object):
         c = ax.pcolormesh(x, y, grid_z[:-1, :-1])
         plt.colorbar(c, ax=ax, label='interpolated intensity')
         plt.show()
+
+    def write_fits(self, filename):
+        """
+        Save image after interpolating the data
+
+        Parameters
+        -------------
+        filename        : str
+                        path to created file
+        """
+        data = self._interpolated_data
+        grid_z = data['grid_z']
+        with fits.open(self.file_arc) as hdul_arc:
+            hdr = fits.Header()
+            hdr = hdul_arc['PRIMARY'].header
+            hdr['SLICE'] = self.slice
+        empty_primary = fits.PrimaryHDU(header=hdr)
+        coord = wcs.WCS(naxis=2)
+        coord.wcs.crpix = np.array([1.0, 1.0])
+        coord.wcs.crval = np.array([data['x'][0], data['y'][0]])
+        coord.wcs.ctype = ['LINEAR', 'LINEAR']
+        coord.wcs.cd = np.array([[self._step_pos, 0], [0, self._step_wave]])
+        coord.wcs.set()
+        image_hdu = fits.ImageHDU(grid_z, coord.to_header(), name='INTENSITY')
+        hdul = fits.HDUList([empty_primary, image_hdu])
+        hdul.writeto(filename, overwrite=True)
 
     def evaluate_intensity(self, w_0, waves):
         """
@@ -142,11 +177,10 @@ class LSF_INTERPOLATION(object):
         evaluated_intensity : array-like
                             intensity extracted from interpolated image
         """
-        interpolated_data = self.interpolate_data()
-        x_coor = [np.argmin(abs(interpolated_data['x']-w)) for w in waves-w_0]
-        y_coor = np.argmin(abs(interpolated_data['y']-w_0))
+        x_coor = [np.argmin(abs(self._interpolated_data['x']-w)) for w in waves-w_0]
+        y_coor = np.argmin(abs(self._interpolated_data['y']-w_0))
         y_coor = np.full_like(x_coor, y_coor)
-        evaluated_intensity = ndimage.map_coordinates(interpolated_data['grid_z'], [y_coor, x_coor], order=1)
+        evaluated_intensity = ndimage.map_coordinates(self._interpolated_data['grid_z'], [y_coor, x_coor], order=1)
         return evaluated_intensity
 
     def plot_evaluated_intensity(self, lsf_data: LSF_DATA, nb_line, ax, centre=True):

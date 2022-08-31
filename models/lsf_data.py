@@ -7,10 +7,7 @@ Created 12th July 2022
 import hpylib as hp
 import numpy as np
 from astropy.io import fits
-from scipy import interpolate
 import math
-import matplotlib.pyplot as plt
-from astropy import wcs
 from ..lib.error import *
 from ..lib import normalize
 
@@ -46,6 +43,7 @@ class LSF_DATA:
         file_flat       : str
                         path of file flat
         """
+        self._interp = False
         self.file_arc = file_arc
         self.file_listLines = file_listLines
         self.file_wavecal = file_wavecal
@@ -112,7 +110,18 @@ class LSF_DATA:
         self._lineUp = np.argmin(abs(self._listLines-upLine))
         self._lineDown = np.argmin(abs(self._listLines-downLine))
         self.pixel2dlambda = abs(np.nanmean(np.diff(self._array_wave_c)))
+    
+    @property
+    def interp(self):
+        """
+        If we use model Interpolation, interp = True
+        else False
+        """
+        return self._interp
 
+    @interp.setter
+    def interp(self, val):
+        self._interp = val
 
     def _load_line_list(self, filename):
         """
@@ -262,9 +271,9 @@ class LSF_DATA:
         diff_array = abs(np.diff(y_lines))
         # Ignore lines which are too close
         if self.pose == 'sampled':
-            mask = (diff_array < 8*self.pixel2dlambda)
+            mask = (diff_array < 8*self.pixel2dlambda) if not self._interp else (diff_array < 16*self.pixel2dlambda)
         else:
-            mask = (diff_array < 24*self.pixel2dlambda)
+            mask = (diff_array < 24*self.pixel2dlambda) if not self._interp else (diff_array < 48*self.pixel2dlambda)
         masked_diff_array = diff_array[mask]
         for elem in masked_diff_array:
             ind = np.argmin(abs(diff_array-elem))
@@ -375,93 +384,6 @@ class LSF_DATA:
             array_waves = np.concatenate((array_waves, np.full_like(pos, data['waveline'])))
             array_intensity = np.concatenate((array_intensity, intensity))
         return {'array_pos': array_pos, 'array_waves': array_waves, 'array_intensity': array_intensity}
-
-    def interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
-        """ 
-        Parameters
-        -----------
-        method      : str, method of interpolation
-                    'nearest', 'linear', 'cubic'
-        step_pos    : float
-                    distance of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
-        step_wave   : float
-                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
-
-        Returns
-        ------------
-        dic         : dict
-                    x : x-axis of image
-                    y : y-axis of image
-                    grid_z : image after being interpolated
-        """
-        if len(self.get_line_list()) <= 1:
-            raise NameError(f"Cannot interpolate, not enough line in the slice {self.slice}")
-        data = self.get_all_data()
-        array_pos = data['array_pos']
-        array_waves = data['array_waves']
-        array_intensity = data['array_intensity']
-        x = np.arange(min(array_pos), max(array_pos), step_pos)
-        y = np.arange(min(array_waves), max(array_waves), step_wave)
-        grid_x, grid_y = np.meshgrid(x, y)
-        grid_z = interpolate.griddata(np.array([array_pos, array_waves]).T, array_intensity, (grid_x, grid_y), method=method)
-        return {'x': x, 'y': y, 'grid_z': grid_z}
-
-    def plot_interpolate_data(self, method='linear', step_pos=1e-2, step_wave=10):
-        """
-        Visualize image after interpolating
-
-        Parameters
-        -------------
-        method      : str, method of interpolation
-                    'linear', 'cubic', 'nearest'
-        step_pos    : float
-                    delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
-        step_wave   : float
-                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
-        """
-        data = self.interpolate_data(method, step_pos, step_wave)
-        x = data['x']
-        y = data['y']
-        grid_z = data['grid_z']
-        fig = plt.figure()
-        ax = plt.axes()
-        ax.set_xlabel(r'pos ($\AA$)')
-        ax.set_ylabel(r'wavelength of line ($\AA$)')
-        c = ax.pcolormesh(x, y, grid_z[:-1, :-1])
-        plt.colorbar(c, ax=ax, label='interpolated intensity')
-        plt.show()
-
-    def write_fits(self, filename, method='linear', step_pos=1e-2, step_wave=10):
-        """
-        Save image after interpolating the data
-
-        Parameters
-        -------------
-        filename        : str
-                        path to created file
-        method      : str, method of interpolation
-                    'linear', 'cubic', 'nearest'
-        step_pos    : float
-                    delta of relative wavelength ($\overset{\circ}{A}$) for x-coor of image
-        step_wave   : float
-                    delta of wavelength ($\overset{\circ}{A}$) for y-coor of image
-        """
-        data = self.interpolate_data(method, step_pos, step_wave)
-        grid_z = data['grid_z']
-        with fits.open(self.file_arc) as hdul_arc:
-            hdr = fits.Header()
-            hdr = hdul_arc['PRIMARY'].header
-            hdr['SLICE'] = self.slice
-        empty_primary = fits.PrimaryHDU(header=hdr)
-        coord = wcs.WCS(naxis=2)
-        coord.wcs.crpix = np.array([1.0, 1.0])
-        coord.wcs.crval = np.array([data['x'][0], data['y'][0]])
-        coord.wcs.ctype = ['LINEAR', 'LINEAR']
-        coord.wcs.cd = np.array([[step_pos, 0], [0, step_wave]])
-        coord.wcs.set()
-        image_hdu = fits.ImageHDU(grid_z, coord.to_header(), name='INTENSITY')
-        hdul = fits.HDUList([empty_primary, image_hdu])
-        hdul.writeto(filename, overwrite=True)
 
     def to_dict(self):
         """

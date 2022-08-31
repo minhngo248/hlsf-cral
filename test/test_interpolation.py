@@ -9,16 +9,21 @@ def test_plot_interpolate(file_arc, file_listLines, file_wavecal, file_slitlet, 
     """
     Visualization of interpolated image
     """
-    lsf_data = LSF_DATA(file_arc, file_listLines, file_wavecal, file_slitlet, slice)
-    lsf_data.plot_interpolate_data(method='linear')
+    lsf_data = LSF_DATA(file_arc, file_listLines, file_wavecal, file_slitlet, slice=slice)
+    list_lsf_data = [LSF_DATA(f"../exposures/ARC-{lamp}_CLEAR_20MAS_{lsf_data.config}_PRM.fits", f"../text/{lamp}.txt",
+                                f"../exposures/WAVECAL_TABLE_20MAS_{lsf_data.config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{lsf_data.config}.fits", slice=slice) for lamp in lamps]
+    lsf_interp = LSF_INTERPOLATION(list_lsf_data)
+    lsf_interp.plot_interpolate_data()
 
-def test_evaluate_intensity(nb_line, config, slice):
+def test_evaluate_intensity(lamp, nb_line, config, slice):
     """
     Evaluate intensity of linspace256 from a model in JSON file
     Gaussian model 2 et interpolation 
 
     Parameters
     ------------
+    lamp            : str
+                    'Ar', 'Kr', 'Ne', 'Xe'
     file_json       : str
                     path of JSON file
     nb_line         : int
@@ -28,10 +33,10 @@ def test_evaluate_intensity(nb_line, config, slice):
     slice           : int
                     0-37
     """
-    mod = LSF_MODEL.from_json(f'../file/gaussian_model_2_{config}_Ar.json')
-    lsf = LSF_DATA(f"../exposures/ARC-Ar_CLEAR_20MAS_{config}_PRM.fits", "../text/Ar.txt",
+    mod = LSF_MODEL.from_json(f'../file/gaussian_model_2_{config}_{lamp}.json')
+    lsf = LSF_DATA(f"../exposures/ARC-{lamp}_CLEAR_20MAS_{config}_PRM.fits", f"../text/{lamp}.txt",
                                 f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
-    lsf_interp = LSF_INTERPOLATION(lsf)
+    lsf_interp = LSF_INTERPOLATION(lsf, method='cubic')
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                                 f"../exposures/WAVECAL_TABLE_20MAS_{config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{config}.fits", slice=slice)
     data = lsf_data.get_data_line(nb_line)
@@ -44,7 +49,7 @@ def test_evaluate_intensity(nb_line, config, slice):
     lsf_data.plot_line(nb_line, ax)
     mod.plot(w_0, waves, ax)
     lsf_interp.plot_evaluated_intensity(lsf_data, nb_line, ax)
-    plt.legend(['Real data', 'Gaussian model', 'Interpolation'])
+    plt.legend(['Real data', 'Gaussian model', 'Cubic Interpolation'])
     plt.title(f'Interpolation RMS error {lsf_interp.error_rms(lsf_data, nb_line)}')
     plt.show()
 
@@ -75,12 +80,14 @@ def error_rms_gauss_interp(slice):
     lsf_interp = LSF_INTERPOLATION(list_lsf_data)
     lsf_data = LSF_DATA(f"../exposures/ARC-linspace256_CLEAR_20MAS_{mod.lsf_data[0].config}_PRM.fits", "../exposures/line_catalog_linspace256.fits",
                     f"../exposures/WAVECAL_TABLE_20MAS_{mod.lsf_data[0].config}.fits", f"../exposures/SLITLET_TABLE_20MAS_{mod.lsf_data[0].config}.fits", slice=slice)
+    lsf_interp_2 = LSF_INTERPOLATION(list_lsf_data, method='cubic')
     fig = plt.figure()
     ax = plt.axes()
     mod.plot_error_rms(lsf_data, ax)
     lsf_interp.plot_error_rms(lsf_data, ax)
-    plt.legend(['Gaussian model 2', 'Interpolation'])
-    plt.title(f'RMS error between Gaussian model and Interpolation')
+    lsf_interp_2.plot_error_rms(lsf_data, ax)
+    plt.legend(['Gaussian model 2', 'Linear interpolation', 'Cubic interpolation'])
+    plt.title(f'RMS error between models')
     plt.grid()
     plt.savefig('../images/rms_gauss_inter')
     plt.show()
@@ -109,7 +116,7 @@ def main():
     if num == 1:
         test_plot_interpolate(file_arc, file_listLines, file_wavecal, file_slitlet, slice)
     elif num == 2:
-        test_evaluate_intensity(nb_line, config, slice)
+        test_evaluate_intensity(lamp, nb_line, config, slice)
     elif num == 3:
         interpolation_lamps(config, slice)
     elif num == 4:

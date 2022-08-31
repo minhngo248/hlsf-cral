@@ -54,10 +54,7 @@ class LSF_MODEL(object):
         """        
         self._coeff = _coeff     
         if listLines == None:
-            if type(lsf_data) == LSF_DATA:
-                self.lsf_data = np.asarray([lsf_data])  
-            else:
-                self.lsf_data = lsf_data
+            self.lsf_data = np.asarray([lsf_data])  if type(lsf_data) == LSF_DATA else lsf_data
             li = np.empty(len(self.lsf_data), dtype=np.ndarray)
             for i in range(len(li)):
                 li[i] = np.array(list(self.lsf_data[i].get_line_list().keys()))
@@ -65,10 +62,7 @@ class LSF_MODEL(object):
         else:
             if type(lsf_data) == LSF_DATA:
                 self.lsf_data = np.asarray([lsf_data])
-                if type(listLines) == int:
-                    self._listLines = np.asarray([[listLines]]) 
-                else: 
-                    self._listLines = np.asarray([listLines]) 
+                self._listLines = np.asarray([[listLines]]) if type(listLines) == int else np.asarray([listLines]) 
             else:
                 self.lsf_data = lsf_data
                 self._listLines = listLines  
@@ -171,10 +165,7 @@ class LSF_MODEL(object):
         err         : float or list[float]
                     RMS error of all lines
         """
-        if type(listLines) == int:
-            listLines = [listLines]
-        else:
-            listLines = np.asarray(listLines)
+        listLines = [listLines] if type(listLines) == int else np.asarray(listLines)
         err = []
         for nb_line in listLines:
             w_0 = lsf_data._listLines[nb_line]
@@ -199,10 +190,7 @@ class LSF_MODEL(object):
                     ex : 9, [9, 10, 56]
         """
         if isinstance(listLines, (np.ndarray, range, list)):            
-            if type(listLines) == int:
-                listLines = [listLines]
-            else:
-                listLines = np.asarray(listLines)
+            listLines = [listLines] if type(listLines) == int else np.asarray(listLines)
         else:
             listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         err = self.error_rms(lsf_data, listLines)
@@ -227,10 +215,7 @@ class LSF_MODEL(object):
         err         : float or list[float]
                     Max relative error of all lines
         """
-        if type(listLines) == int:
-            listLines = [listLines]
-        else:
-            listLines = np.asarray(listLines)
+        listLines = [listLines] if type(listLines) == int else np.asarray(listLines)
         err = []
         for nb_line in listLines:
             w_0 = lsf_data._listLines[nb_line]
@@ -257,10 +242,7 @@ class LSF_MODEL(object):
         ax.set_xlabel(r'wavelength ($\AA$)')
         ax.set_ylabel('Max relative err')
         if isinstance(listLines, (np.ndarray, range, list)):            
-            if type(listLines) == int:
-                listLines = [listLines]
-            else:
-                listLines = np.asarray(listLines)
+            listLines = [listLines] if type(listLines) == int else np.asarray(listLines) 
         else:
             listLines = np.arange(lsf_data._lineUp, lsf_data._lineDown+1)
         err = self.error_max(lsf_data, listLines)

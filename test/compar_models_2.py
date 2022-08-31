@@ -1,10 +1,14 @@
+"""
+3 models and lsf_interpolation
+"""
 from hlsf.models import *
 import matplotlib.pyplot as plt
 import argparse
 
 def test_rms_models(config, slice, lamp):
     """
-    RMS error 3 models
+    RMS error 3 models : GAUSSIAN_MODEL_2, MOFFAT_MODEL_2
+    GAUSS_HERMITE_MODEL_2 and LSF_INTERPOLATION
     
     Parameters
     -------------
